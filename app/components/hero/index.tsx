@@ -7,7 +7,7 @@ import gsap from "gsap";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import CloudContainer from "../models/Cloud";
-import WindowModel from "../models/WindowModel";
+import HorseModel from "../models/HorseModel";
 import TextWindow from "./TextWindow";
 
 const Hero = () => {
@@ -34,11 +34,11 @@ const Hero = () => {
 
   return (
     <>
-      <Text position={[0, 2, -10]} {...fontProps} ref={titleRef}>Hi, I am Mohit Virli.</Text>
+      <Text position={[0, 2, -10]} {...fontProps} ref={titleRef}>Hi, I am Akul Tyagi.</Text>
       <CloudContainer/>
-      <group position={[0, -25, 5.69]}>
-        <pointLight castShadow position={[1, 1, -2.5]} intensity={60} distance={10}/>
-        <WindowModel receiveShadow/>
+      <group position={[0, -13, 5.6]}>
+        <pointLight castShadow position={[1, 1, -2.5]} intensity={80} distance={10}/>
+        <HorseModel receiveShadow/>
         <TextWindow/>
       </group>
     </>

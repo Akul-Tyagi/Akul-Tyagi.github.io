@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Memory } from '../models/Memory'
 import { Wanderer } from '../models/Wanderer'
-import WindowModel from '../models/WindowModel'
+import WindowModel from '../models/HorseModel'
 
 // List of models to preload.
 const MODELS = [WindowModel, Memory, Wanderer];
