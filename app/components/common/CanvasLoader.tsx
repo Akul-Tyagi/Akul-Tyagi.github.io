@@ -13,7 +13,6 @@ import Preloader from "./Preloader";
 import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
 import ThemeSwitcher from "./ThemeSwitcher";
-// import {Perf} from "r3f-perf"
 
 const CanvasLoader = (props: { children: React.ReactNode }) => {
   const ref= useRef<HTMLDivElement>(null);
@@ -67,18 +66,17 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="h-[100dvh] wrapper relative">
+    <div className="h-[100dvh] wrapper relative ">
       <div className="h-[100dvh] relative" ref={ref}>
-        <Canvas className="base-canvas"
+        <Canvas className="base-canvas -translate-y-[0.5px] rounded-3xl"
           shadows
           style={canvasStyle}
           ref={canvasRef}
           dpr={[1, 2]}>
-          {/* <Perf/> */}
           <Suspense fallback={null}>
             <ambientLight intensity={0.5} />
 
-            <ScrollControls pages={4} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
+            <ScrollControls pages={6} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
               {props.children}
               <Preloader />
             </ScrollControls>

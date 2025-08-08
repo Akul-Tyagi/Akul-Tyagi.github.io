@@ -98,7 +98,8 @@ const ProgressLoader = ({ progress }: { progress: number }) => {
           fill="none"
           strokeWidth={strokeWidth}
           stroke="rgba(0, 0, 0, 0.2)"
-          // className={bgColor} // Apply ba ckground color class
+          rx={24} // <-- Add this
+          ry={24} // <-- And this
         />
         {/* Progress indicator rectangle */}
         <rect
@@ -114,6 +115,8 @@ const ProgressLoader = ({ progress }: { progress: number }) => {
             strokeDashoffset: strokeDashoffset, // Set the offset to show progress
             transition: 'stroke-dashoffset 1s ease-in-out', // Smooth transition effect
           }}
+          rx={24} // <-- Add this
+          ry={24} // <-- And this
         />
       </svg>
     </div>
