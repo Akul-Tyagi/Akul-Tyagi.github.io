@@ -8,7 +8,8 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import CloudContainer from "../models/Cloud";
 import HorseModel from "../models/HorseModel";
-import TextWindow from "./TextWindow";
+import ModelsRail from "../models/ModelsRail";
+
 
 const Hero = () => {
   const titleRef = useRef<THREE.Mesh>(null);
@@ -37,9 +38,8 @@ const Hero = () => {
       <Text position={[0, 2, -10]} {...fontProps} ref={titleRef}>Hi, I am Akul Tyagi.</Text>
       <CloudContainer/>
       <group position={[0, -13, 5.6]}>
-        <pointLight castShadow position={[1, 1, -2.5]} intensity={80} distance={10}/>
         <HorseModel receiveShadow/>
-        <TextWindow/>
+        <ModelsRail/>
       </group>
     </>
   );

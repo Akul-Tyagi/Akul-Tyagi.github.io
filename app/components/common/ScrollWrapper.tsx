@@ -21,7 +21,7 @@ const ScrollWrapper = (props: { children: React.ReactNode | React.ReactNode[]}) 
 
       if (!isActive) {
         camera.rotation.x = THREE.MathUtils.damp(camera.rotation.x, -0.5 * Math.PI * a, 5, delta);
-        camera.position.y = THREE.MathUtils.damp(camera.position.y, -37 * b, 7, delta);
+        camera.position.y = THREE.MathUtils.damp(camera.position.y, -64 * b, 7, delta);
         camera.position.z = THREE.MathUtils.damp(camera.position.z, 5 + 10 * d, 7, delta);
 
         setScrollProgress(data.range(0, 1));

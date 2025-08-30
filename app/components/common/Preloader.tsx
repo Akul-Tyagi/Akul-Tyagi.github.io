@@ -1,29 +1,33 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { Memory } from '../models/Memory'
-import { Wanderer } from '../models/Wanderer'
-import WindowModel from '../models/HorseModel'
+import { useGLTF } from '@react-three/drei';
+import { useLoader } from '@react-three/fiber';
+import { OBJLoader } from 'three-stdlib';
 
-// List of models to preload.
-const MODELS = [WindowModel, Memory, Wanderer];
+// New preloads (GLB singles)
+const GLB_URLS = [
+  'models/onepiece.glb',
+  'models/setup.glb',
+  'models/sopranos.glb',
+  'models/bb.glb',
+  'models/mug1.glb',
+  'models/mug2.glb',
+  'models/arsenal.glb',
+  'models/basketball.glb',
+];
 
-const Preloader = () => {
-  const [visible, setVisible] = useState(true);
+// OBJ sequences
+const SONY_COUNT = 30;
+const SONY_BASE = 'models/Sony/model_';
 
-  // Hacky way to preload the models by setting them on to the scene and
-  // removing them after a timeout as the base canvas is shown after a delay.
-  useEffect(() => {
-    setTimeout(() => {
-      setVisible(false);
-    }, 0);
-  }, []);
-
-  return (<>
-    {MODELS.map((Component, index) => (
-      <Component key={index} visible={visible}/>
-    ))}
-  </>)
+// Only run preloads on the client to avoid SSR import-time errors
+if (typeof window !== 'undefined') {
+  GLB_URLS.forEach((u) => useGLTF.preload(u));
+  Array.from({ length: SONY_COUNT }, (_, i) => `${SONY_BASE}${i}.obj`).forEach((u) =>
+    useLoader.preload(OBJLoader, u)
+  );
 }
+
+const Preloader = () => null;
 
 export default Preloader;
