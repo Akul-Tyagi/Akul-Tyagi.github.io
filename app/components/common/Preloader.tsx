@@ -14,18 +14,14 @@ const GLB_URLS = [
   'models/mug2.glb',
   'models/arsenal.glb',
   'models/basketball.glb',
+  'models/ps5.glb',
+  'models/xm5.glb',
+  'models/train.glb'
 ];
-
-// OBJ sequences
-const SONY_COUNT = 30;
-const SONY_BASE = 'models/Sony/model_';
 
 // Only run preloads on the client to avoid SSR import-time errors
 if (typeof window !== 'undefined') {
   GLB_URLS.forEach((u) => useGLTF.preload(u));
-  Array.from({ length: SONY_COUNT }, (_, i) => `${SONY_BASE}${i}.obj`).forEach((u) =>
-    useLoader.preload(OBJLoader, u)
-  );
 }
 
 const Preloader = () => null;

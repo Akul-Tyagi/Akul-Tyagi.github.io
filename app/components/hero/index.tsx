@@ -9,7 +9,7 @@ import * as THREE from "three";
 import CloudContainer from "../models/Cloud";
 import HorseModel from "../models/HorseModel";
 import ModelsRail from "../models/ModelsRail";
-
+import TrainModel from "../models/TrainModel";
 
 const Hero = () => {
   const titleRef = useRef<THREE.Mesh>(null);
@@ -40,6 +40,9 @@ const Hero = () => {
       <group position={[0, -13, 5.6]}>
         <HorseModel receiveShadow/>
         <ModelsRail/>
+        {/* Centered where down-tilt completes (hand-off to X scroll) */}
+        {/* World target ~ [0, -64, 10.5] => local ~ [0, -51, 5.4] relative to this group */}
+        <TrainModel appearAt={0.8} position={[0, -53, 5.5]} scale={[0.01, 0.01, 0.01]} rotation={[3.15, 0, 0]} />
       </group>
     </>
   );
