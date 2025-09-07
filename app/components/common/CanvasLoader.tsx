@@ -6,19 +6,24 @@ import { Canvas } from "@react-three/fiber";
 import gsap from "gsap";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
-
-import { useThemeStore } from "@stores";
-
+import VideoOverlay from "./VideoOverlay";
+import { useThemeStore, useScrollStore, useVideoStore } from "@stores";
 import Preloader from "./Preloader";
 import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
 import ThemeSwitcher from "./ThemeSwitcher";
+import WarmupCompiler from "./WarmupCompiler";
+
 
 const CanvasLoader = (props: { children: React.ReactNode }) => {
   const ref= useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const backgroundColor = useThemeStore((state) => state.color);
   const { progress } = useProgress();
+  const isVideoPlaying = useVideoStore(state => state.isVideoPlaying);
+
+const shouldShowCanvas = !isVideoPlaying;
+
   const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({
     position: "absolute",
     top: 0,
@@ -36,7 +41,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
         width: 'calc(100% - 2rem)',
         height: 'calc(100% - 2rem)',
       };
-      setCanvasStyle({ ...canvasStyle, ...borderStyle})
+      setCanvasStyle((prev) => ({ ...prev, ...borderStyle }));
     }
   }, [isMobile]);
 
@@ -47,15 +52,8 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   }, [progress]);
 
   useGSAP(() => {
-    gsap.to(ref.current, {
-      backgroundColor: backgroundColor,
-      duration: 1,
-    });
-    gsap.to(canvasRef.current, {
-      backgroundColor: backgroundColor,
-      duration: 1,
-      ...noiseOverlayStyle,
-    });
+    gsap.to(ref.current, { backgroundColor, duration: 1 });
+    gsap.to(canvasRef.current, { backgroundColor, duration: 1, ...noiseOverlayStyle });
   }, [backgroundColor]);
 
   const noiseOverlayStyle = {
@@ -67,16 +65,29 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
 
   return (
     <div className="h-[100dvh] wrapper relative ">
-      <div className="h-[100dvh] relative" ref={ref}>
-        <Canvas className="base-canvas -translate-y-[0.5px] rounded-3xl"
-          shadows
-          style={canvasStyle}
-          ref={canvasRef}
-          dpr={[1, 2]}>
+      <div
+  className="h-[100dvh] relative"
+  ref={ref}
+  style={{ 
+    opacity: shouldShowCanvas ? 1 : 0, 
+    transition: 'opacity 0.5s ease',
+    pointerEvents: shouldShowCanvas ? 'auto' : 'none' 
+  }}
+>
+  <Canvas
+    className="base-canvas -translate-y-[0.5px] rounded-3xl"
+    shadows
+    style={{ ...canvasStyle }}
+    ref={canvasRef}
+    dpr={[1, isMobile ? 1.25 : 1.75]}
+    gl={{ powerPreference: 'high-performance', antialias: true }}
+  >
           <Suspense fallback={null}>
             <ambientLight intensity={0.7} />
+            {/* Precompile once assets are ready to reduce first-tilt hitch */}
+            <WarmupCompiler />
 
-            <ScrollControls pages={16} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
+            <ScrollControls pages={20} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
               {props.children}
               <Preloader />
             </ScrollControls>
@@ -87,8 +98,12 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
         </Canvas>
         <ProgressLoader progress={progress} />
       </div>
-      <ThemeSwitcher />
-      <ScrollHint />
+
+      {/* Hide UI while video is playing */}
+      {!isVideoPlaying && <ThemeSwitcher />}
+      {!isVideoPlaying && <ScrollHint />}
+
+      <VideoOverlay />
     </div>
   );
 };

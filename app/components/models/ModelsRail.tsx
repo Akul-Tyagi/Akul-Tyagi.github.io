@@ -72,13 +72,13 @@ const ModelLightRig = ({ scaleFactor = 1 }: { scaleFactor?: number }) => {
         color="#ffffff"
       />
       {/* Fill light */}
-      <pointLight
+      {/* <pointLight
         intensity={7}
         distance={12 * s}
         decay={1.5}
         position={[-2, 1.5, -1]}
         color="#ffffff"
-      />
+      /> */}
     </>
   );
 };

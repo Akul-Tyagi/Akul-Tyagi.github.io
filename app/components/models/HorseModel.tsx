@@ -2,7 +2,7 @@
 
 import { useGLTF, useScroll, useTexture } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTF } from 'three-stdlib'
 
@@ -143,8 +143,31 @@ useFrame((_, delta) => {
     rootRef.current.position.y = THREE.MathUtils.damp(rootRef.current.position.y, targetY, 4, delta);
     rootRef.current.position.z = THREE.MathUtils.damp(rootRef.current.position.z, targetZ, 4, delta);
   });
+
+  // Single shared material (avoid creating N materials during render)
+  const horseMat = useMemo(() => {
+    const m = new THREE.MeshPhysicalMaterial({
+      map: textures.map,
+      normalMap: textures.normalMap,
+      roughnessMap: textures.roughnessMap,
+      aoMap: textures.aoMap,
+      metalnessMap: textures.metalnessMap,
+      roughness: 0.3,
+      metalness: 0.1,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.1,
+      sheen: 0.2,
+      sheenColor: new THREE.Color(0xffffff),
+      sheenRoughness: 0.1,
+      transmission: 0,
+      emissive: new THREE.Color(0x808080),
+      emissiveIntensity: 0.15,
+    });
+    return m;
+  }, [textures]);
+
+  useEffect(() => () => horseMat.dispose(), [horseMat]);
   
-  // Render all meshes from all 5 GLBs under a single group (one horse)
   const renderHorseParts = () => {
     return horses.flatMap((horse, hi) =>
       Object.entries(horse.nodes).map(([nodeName, node]) => {
@@ -156,25 +179,7 @@ useFrame((_, delta) => {
               castShadow
               receiveShadow
               geometry={mesh.geometry}
-              material={
-                new THREE.MeshPhysicalMaterial({
-                  map: textures.map,
-                  normalMap: textures.normalMap,
-                  roughnessMap: textures.roughnessMap,
-                  aoMap: textures.aoMap,
-                  metalnessMap: textures.metalnessMap,
-                  roughness: 0.3,
-                  metalness: 0.1,
-                  clearcoat: 0.7,
-                  clearcoatRoughness: 0.1,
-                  sheen: 0.2,
-                  sheenColor: new THREE.Color(0xffffff),
-                  sheenRoughness: 0.1,
-                  transmission: 0,
-                  emissive: new THREE.Color(0x808080),
-                  emissiveIntensity: 0.15,
-                })
-              }
+              material={horseMat}
               position={mesh.position}
               rotation={mesh.rotation}
               scale={mesh.scale}
@@ -187,11 +192,10 @@ useFrame((_, delta) => {
   };
 
   return (
-    <group ref={rootRef} {...props} dispose={null}>
+    <group ref={rootRef} {...props} dispose={null} frustumCulled={false}>
       {/* Light attached to the horse with your exact settings */}
-      <pointLight castShadow position={[1, 1, -2.5]} intensity={80} distance={10} />
+      <pointLight position={[1, 1, -2.5]} intensity={80} distance={10} />
 
-      {/* Single horse model composed from all parts */}
       <group ref={modelRef} position={[0, 0, 0]} scale={[2, 2, 2]}>
         {renderHorseParts()}
       </group>

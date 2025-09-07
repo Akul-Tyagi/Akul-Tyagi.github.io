@@ -12,7 +12,7 @@ type TrainProps = JSX.IntrinsicElements['group'] & {
   appearAt?: number;   // normalized scroll offset [0..1]
 };
 
-const TrainModel = ({ scale: modelScale = 1, appearAt = 0.8, ...rest }: TrainProps) => {
+const TrainModel = ({ scale: modelScale = 1, appearAt = 0.7, ...rest }: TrainProps) => {
   const gltf = useGLTF('models/train.glb');
 
   const rootRef = useRef<THREE.Group>(null);
@@ -47,11 +47,11 @@ const TrainModel = ({ scale: modelScale = 1, appearAt = 0.8, ...rest }: TrainPro
 
   return (
     <group ref={rootRef} {...rest} dispose={null}>
-      <group ref={lightsGroupRef}>
-        <pointLight ref={(el) => (lightRefs.current[0] = el!)} color="#fff6e0" position={[0, 0.6, -10]} distance={10} decay={2} castShadow />
-        <pointLight ref={(el) => (lightRefs.current[1] = el!)} color="#fff6e0" position={[0, 0.6, -5]} distance={10} decay={2} castShadow />
-        <pointLight ref={(el) => (lightRefs.current[2] = el!)} color="#fff6e0" position={[0, 0.6, -0.2]} distance={10} decay={2} castShadow />
-      </group>
+      {/* <group ref={lightsGroupRef}>
+        <pointLight ref={(el) => (lightRefs.current[0] = el!)} color="#fff6e0" position={[0, 0.6, -10]} distance={10} decay={2} />
+        <pointLight ref={(el) => (lightRefs.current[1] = el!)} color="#fff6e0" position={[0, 0.6, -5]} distance={10} decay={2} />
+        <pointLight ref={(el) => (lightRefs.current[2] = el!)} color="#fff6e0" position={[0, 0.6, -0.2]} distance={10} decay={2} />
+      </group> */}
 
       <group scale={modelScale as any}>
         <primitive object={(gltf as any).scene ?? gltf} />

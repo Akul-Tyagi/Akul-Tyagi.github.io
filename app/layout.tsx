@@ -67,6 +67,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="overscroll-y-none">
+      <head>
+        {/* Hint the browser to fetch and prioritize the video */}
+        <link rel="preload" as="video" href="/videos/Falling.mp4" type="video/mp4" />
+      </head>
       <body
         className={`${soriaFont.variable} ${vercettiFont.variable} font-sans antialiased`}
       >
