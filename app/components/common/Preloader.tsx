@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useGLTF, useTexture } from '@react-three/drei';
-import { useVideoStore } from '@stores';
+import { useVideoStore, useCityStore } from '@stores';
 
 const GLB_URLS = [
   'models/onepiece.glb',
@@ -15,7 +15,8 @@ const GLB_URLS = [
   'models/basketball.glb',
   'models/ps5.glb',
   'models/xm5.glb',
-  'models/train.glb'
+  'models/train.glb',
+  'models/city/scene.gltf'
 ];
 
 const TEX_URLS = [
@@ -26,6 +27,36 @@ const TEX_URLS = [
   'models/horse/Horse_low0_metallic.png',
 ];
 
+const CITY_GLTF_PATH = 'models/city/scene.gltf';
+
+async function preloadCityImageURIs(): Promise<string[]> {
+  try {
+    const res = await fetch(CITY_GLTF_PATH, { cache: 'force-cache' });
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (!json.images) return [];
+    const baseDir = CITY_GLTF_PATH.slice(0, CITY_GLTF_PATH.lastIndexOf('/') + 1);
+    return json.images
+      .map((img: any) => img?.uri)
+      .filter(Boolean)
+      .map((u: string) => baseDir + u);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAndDecode(url: string) {
+  try {
+    const r = await fetch(url, { cache: 'force-cache' });
+    if (!r.ok) return;
+    const blob = await r.blob();
+    // Decode bitmap (prevents decode hitch later)
+    const img = await createImageBitmap(blob);
+    img.close();
+  } catch {}
+}
+
+
 if (typeof window !== 'undefined') {
   GLB_URLS.forEach((u) => useGLTF.preload(u));
   TEX_URLS.forEach((u) => useTexture.preload(u));
@@ -35,6 +66,7 @@ const VIDEO_PATH = '/videos/Falling.mp4';
 
 const Preloader = () => {
   const setVideoSrc = useVideoStore((s) => s.setVideoSrc);
+  const setCityReady = useCityStore(s => s.setCityReady);
 
   useEffect(() => {
     let hiddenVideo: HTMLVideoElement | null = null;
@@ -125,6 +157,33 @@ const Preloader = () => {
       // If you ever need to revoke: window.addEventListener('beforeunload', () => URL.revokeObjectURL(blobUrl!))
     };
   }, [setVideoSrc]);
+
+  // City texture prefetch + decode queue (staggered to avoid main thread spike)
+  useEffect(() => {
+    let aborted = false;
+    (async () => {
+      const urls = await preloadCityImageURIs();
+      // Preload via drei (initiates TextureLoader caching)
+      urls.forEach(u => { try { useTexture.preload(u); } catch {} });
+
+      // Sequential decode to smooth CPU usage
+      for (const url of urls) {
+        if (aborted) break;
+        await fetchAndDecode(url);
+        const ric: any = (window as any).requestIdleCallback;
+        await new Promise(res => {
+          if (typeof ric === 'function') {
+            ric(() => res(null));
+          } else {
+            setTimeout(res, 8);
+          }
+        });
+      }
+      if (!aborted) setCityReady(true);
+    })();
+
+    return () => { aborted = true; };
+  }, [setCityReady]);
 
   return null;
 };

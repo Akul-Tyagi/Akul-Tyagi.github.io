@@ -3,7 +3,7 @@ import { create } from 'zustand';
 interface VideoStore {
   isVideoPlaying: boolean;
   hasVideoPlayed: boolean;
-  videoSrc: string | null; // blob URL or fallback path
+  videoSrc: string | null; 
   setVideoPlaying: (playing: boolean) => void;
   setVideoPlayed: (played: boolean) => void;
   setVideoSrc: (src: string | null) => void;

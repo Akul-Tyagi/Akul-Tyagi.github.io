@@ -7,7 +7,7 @@ const VideoOverlay = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [loaded, setLoaded] = useState(false);
 
-  const { isVideoPlaying, setVideoPlaying, setVideoPlayed, videoSrc } = useVideoStore();
+  const { isVideoPlaying, setVideoPlaying, setVideoPlayed, videoSrc, hasVideoPlayed } = useVideoStore();
   const scrollProgress = useScrollStore((s) => s.scrollProgress);
 
   // Trigger near end of scroll
@@ -19,11 +19,13 @@ const VideoOverlay = () => {
     if (v.readyState >= 2) setLoaded(true);
   }, [videoSrc]);
 
+  // Start video (only if not already played before)
   useEffect(() => {
+    if (hasVideoPlayed) return; // prevent any restart
     if (isAtVideoTrigger && loaded && !isVideoPlaying) {
       setVideoPlaying(true);
     }
-  }, [isAtVideoTrigger, loaded, isVideoPlaying, setVideoPlaying]);
+  }, [isAtVideoTrigger, loaded, isVideoPlaying, hasVideoPlayed, setVideoPlaying]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -43,15 +45,19 @@ const VideoOverlay = () => {
     }
   }, [isVideoPlaying, isAtVideoTrigger]);
 
-  const handleVideoEnded = () => {
+  const finalize = () => {
     setVideoPlaying(false);
-    setVideoPlayed(true);
+    setVideoPlayed(true); // marks as done forever
     document.body.style.overflow = '';
   };
 
-  const handleSkip = () => {
-    handleVideoEnded();
-  };
+  const handleVideoEnded = () => finalize();
+  const handleSkip = () => finalize();
+
+  // Once video has played (ended or skipped) remove overlay entirely
+  if (hasVideoPlayed && !isVideoPlaying) {
+    return null;
+  }
 
   return (
     <div
@@ -60,7 +66,7 @@ const VideoOverlay = () => {
         inset: 0,
         zIndex: 9999,
         opacity: isVideoPlaying ? 1 : 0,
-        transition: 'opacity 0.5s ease',
+        transition: 'opacity 0.01s ease',
         pointerEvents: isVideoPlaying ? 'all' : 'none',
         backgroundColor: '#000',
       }}

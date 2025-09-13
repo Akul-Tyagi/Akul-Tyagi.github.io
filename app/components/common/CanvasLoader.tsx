@@ -13,6 +13,7 @@ import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
 import ThemeSwitcher from "./ThemeSwitcher";
 import WarmupCompiler from "./WarmupCompiler";
+import CityWarmup from './CityWarmup';
 
 
 const CanvasLoader = (props: { children: React.ReactNode }) => {
@@ -86,7 +87,9 @@ const shouldShowCanvas = !isVideoPlaying;
             <ambientLight intensity={0.7} />
             {/* Precompile once assets are ready to reduce first-tilt hitch */}
             <WarmupCompiler />
-
+            {/* Warm city assets invisibly once textures decoded */}
+            <CityWarmup />
+            
             <ScrollControls pages={20} damping={0.4} maxSpeed={1} distance={1} style={{ zIndex: 1 }}>
               {props.children}
               <Preloader />

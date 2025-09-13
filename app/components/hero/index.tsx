@@ -42,7 +42,7 @@ const Hero = () => {
         <ModelsRail/>
         {/* Centered where down-tilt completes (hand-off to X scroll) */}
         {/* World target ~ [0, -64, 10.5] => local ~ [0, -51, 5.4] relative to this group */}
-        <TrainModel appearAt={0.7} position={[0, -53, 5.5]} scale={[0.01, 0.01, 0.01]} rotation={[3.15, 0, 0]} />
+        <TrainModel appearAt={0.8} position={[0, -53, 5.5]} scale={[0.01, 0.01, 0.01]} rotation={[3.15, 0, 0]} />
       </group>
     </>
   );
