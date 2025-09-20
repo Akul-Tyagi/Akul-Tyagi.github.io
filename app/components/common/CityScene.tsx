@@ -4,8 +4,9 @@ import { Suspense, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import CityModel from '../models/CityModel';
 import CityControls from './CityControls';
-import CityTexts, { CityTextConfig } from './CityTexts';
+import CityTexts from './CityTexts';
 import IronThroneHotspot from './IronThroneHotspot';
+import SocialFloatingGlb from '../models/SocialFloatingGlb';
 
 interface CitySceneProps {
   active: boolean;
@@ -156,6 +157,50 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
                 floatAmplitude: 0.8,
                 floatSpeed: 0.42,
                 fadeDistance: 1000
+              },
+              {
+                id: 't5',
+                text: 'LEETCODE',
+                position:[223, 11, 28],
+                rotation:[0, 4.7, 0],
+                fontSize: 3.4,
+                color: '#ffd6a0',
+                floatAmplitude: 0.8,
+                floatSpeed: 0.42,
+                fadeDistance: 1000
+              },
+              {
+                id: 't6',
+                text: 'LINKEDIN',
+                position:[173, 11, -28],
+                rotation:[0, 4.7, 0],
+                fontSize: 3.4,
+                color: '#ffd6a0',
+                floatAmplitude: 0.8,
+                floatSpeed: 0.42,
+                fadeDistance: 1000
+              },
+              {
+                id: 't7',
+                text: 'GITHUB',
+                position:[73, 11, -28],
+                rotation:[0, 4.7, 0],
+                fontSize: 3.4,
+                color: '#ffd6a0',
+                floatAmplitude: 0.8,
+                floatSpeed: 0.42,
+                fadeDistance: 1000
+              },
+              {
+                id: 't8',
+                text: 'PINTEREST',
+                position:[123, 11, 28],
+                rotation:[0, 4.7, 0],
+                fontSize: 3.4,
+                color: '#ffd6a0',
+                floatAmplitude: 0.8,
+                floatSpeed: 0.42,
+                fadeDistance: 1000
               }
             ]}
           />
@@ -169,6 +214,45 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             onInteractStart={() => setUiCaptured(true)}
             onInteractEnd={() => setTimeout(() => setUiCaptured(false), 100)}
           />
+
+          <group>
+            <SocialFloatingGlb
+              url="models/df.glb"
+              href="https://leetcode.com/u/AKUL_TYAGI/"
+              position={[220, 8, 28]}
+              rotation={[0, 4.7, 0]}
+              scale={20}
+              floatSpeed={7}
+              floatIntensity={8}
+            />
+            <SocialFloatingGlb
+              url="models/dfnika.glb"
+              href="https://www.linkedin.com/in/akul-tyagi/"
+              position={[170, 5, -28]}
+              rotation={[0, 4.7, 0]}
+              scale={25}
+              floatSpeed={7}
+              floatIntensity={7}
+            />
+            <SocialFloatingGlb
+              url="models/dfoonm.glb"
+              href="https://github.com/Akul-Tyagi"
+              position={[70, 8, -28]}
+              rotation={[0, 4.7, 0]}
+              scale={5.2}
+              floatSpeed={7}
+              floatIntensity={8}
+            />
+            <SocialFloatingGlb
+              url="models/dfdf.glb"
+              href="https://in.pinterest.com/VincenzoSanji/"
+              position={[120, 7, 28]}
+              rotation={[0, 4.7, 0]}
+              scale={3}
+              floatSpeed={7}
+              floatIntensity={7}
+            />
+          </group>
 
           <CityControls
             enabled={active && fallDone && !uiCaptured}

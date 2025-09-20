@@ -16,7 +16,13 @@ const GLB_URLS = [
   'models/ps5.glb',
   'models/xm5.glb',
   'models/train.glb',
-  'models/city/scene.gltf'
+  'models/city/scene.gltf',
+  'models/df.glb',
+  'models/dfnika.glb',
+  'models/dfoonm.glb',
+  'models/dfdf.glb',
+  'models/IronThrone/model_0.obj',
+  'models/IronThrone/model_1.obj'
 ];
 
 const TEX_URLS = [
@@ -25,6 +31,7 @@ const TEX_URLS = [
   'models/horse/Horse_low0_roughness.png',
   'models/horse/Horse_low0_ao.png',
   'models/horse/Horse_low0_metallic.png',
+  'models/IronThrone/sword_UV4.png'
 ];
 
 const CITY_GLTF_PATH = 'models/city/scene.gltf';
