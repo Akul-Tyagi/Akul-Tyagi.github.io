@@ -14,6 +14,7 @@ interface Bounds {
 
 interface CityControlsProps {
   enabled: boolean;
+  uiCaptured?: boolean;
   keepY?: number;
   baseStep?: number;
   sensitivity?: number;
@@ -30,6 +31,7 @@ interface CityControlsProps {
 
 const CityControls = ({
   enabled,
+  uiCaptured = false,
   keepY = 11,
   baseStep = 12,
   sensitivity = 0.00085,          // slightly lower due to higher responsiveness
@@ -102,6 +104,8 @@ const CityControls = ({
     };
 
     const onPointerDown = (e: PointerEvent) => {
+      // If UI/hotspot is handling this click, do nothing.
+      if (uiCaptured) return;
       if (e.button !== 0) return;
       if (!firstClickDone.current) {
         firstClickDone.current = true;
@@ -128,17 +132,22 @@ const CityControls = ({
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs/textareas
+      if (isInputEl(document.activeElement)) return;
       if (e.key === 'Escape') {
         if (pointerLocked.current) document.exitPointerLock?.();
         return;
       }
       if (e.key === 'Shift') shiftDown.current = true;
-      const k = e.key.toLowerCase();
+      const k = (e.key && (e.key as any).toLowerCase) ? e.key.toLowerCase() : '';
+      if (!k) return;
       if (['w','a','s','d'].includes(k)) keys.current.add(k);
     };
     const onKeyUp = (e: KeyboardEvent) => {
+      if (isInputEl(document.activeElement)) return;
       if (e.key === 'Shift') shiftDown.current = false;
-      const k = e.key.toLowerCase();
+      const k = (e.key && (e.key as any).toLowerCase) ? e.key.toLowerCase() : '';
+      if (!k) return;
       if (['w','a','s','d'].includes(k)) keys.current.delete(k);
     };
 
@@ -165,7 +174,13 @@ const CityControls = ({
       document.removeEventListener('pointerrawupdate', onRaw as any);
       canvas.removeEventListener('contextmenu', onContextMenu);
     };
-  }, [enabled, gl, camera, baseStep, stepImpulseScale]);
+  }, [enabled, gl, camera, baseStep, stepImpulseScale, uiCaptured]);
+
+  function isInputEl(el: Element | null) {
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || (el as HTMLElement).isContentEditable === true;
+}
 
   // Helper: trimmed mean smoothing for delta
   function smoothDelta(samplesRef: React.MutableRefObject<number[]>, raw: number) {

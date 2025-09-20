@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import CityModel from '../models/CityModel';
 import CityControls from './CityControls';
 import CityTexts, { CityTextConfig } from './CityTexts';
+import IronThroneHotspot from './IronThroneHotspot';
 
 interface CitySceneProps {
   active: boolean;
@@ -56,6 +57,7 @@ const CameraFall = ({ active, onFinished }: { active: boolean; onFinished?: () =
 const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const [fallDone, setFallDone] = useState(false);
   const [showHint, setShowHint] = useState(true);
+  const [uiCaptured, setUiCaptured] = useState(false); // disable controls when typing
 
   useEffect(() => {
     if (fallDone) {
@@ -114,8 +116,8 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               {
                 id: 't1',
                 text: 'CONTACT ME',
-                position: [1.5, 16, -55],
-                rotation: [0, 0, 0],
+                position: [0, 16, 73],
+                rotation: [0, 3.1, 0],
                 fontSize: 7,
                 color: '#ffeecc',
                 floatAmplitude: 0.6,
@@ -125,8 +127,8 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               {
                 id: 't2',
                 text: 'RESUME',
-                position: [0, 16, 73],
-                rotation: [0, 3.1, 0],
+                position: [1.5, 16, -55],
+                rotation: [0, 0, 0],
                 fontSize: 8,
                 color: '#99c8ff',
                 floatAmplitude: 1.0,
@@ -158,8 +160,19 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             ]}
           />
 
+          <IronThroneHotspot
+            position={[0, 6, -220]}
+            rotation={[0.05, -0.13, 0]}
+            scale={1.2}
+            throneTexture="UV5"
+            resumeUrl="/ResAK.pdf"
+            onInteractStart={() => setUiCaptured(true)}
+            onInteractEnd={() => setTimeout(() => setUiCaptured(false), 100)}
+          />
+
           <CityControls
-            enabled={active && fallDone}
+            enabled={active && fallDone && !uiCaptured}
+            uiCaptured={uiCaptured}
             bounds={roamBounds.current}
             baseStep={12}
             walkSpeed={26}
