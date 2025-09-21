@@ -262,8 +262,9 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               href='https://cureapt.vercel.app/'
               position={[-120, 2, 28]}
               rotationOrder="YXZ"
-              rotation={[0, 3.17, 0.1]}
+              rotation={[0, 3.17, 0.03]}
               scale={64}
+              linkId='cureapt'
             />
             <Showcase
               url="models/samsung.glb"
@@ -271,6 +272,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               position={[-64, 9, -37]}
               rotation={[0, 4.6, 0]}
               scale={0.13}
+              linkId='naivety'
             />
             <Showcase
               url="models/tv.glb"
@@ -291,15 +293,19 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               imageRadius={0.3}
               floatSpeed={1.5}
               floatIntensity={0.7}
+              
             />
             <Showcase
               url="models/images/sscureapt.png"
               href='https://cureapt.vercel.app/'
-              position={[-127, 11.27, 28.23]}
+              position={[-127.7, 11.29, 28.23]}
               rotationOrder="YXZ"
-              rotation={[0.09, 1.6, 0]}
+              rotation={[0.03, 1.6, 0]}
               scale={13}
-              imageRadius={0.3}
+              imageRadius={0.5}
+              hoverScale={1.25}
+              scaleDamp={7}
+              linkId='cureapt'
             />
             <Showcase
               url="models/images/ssunagi.png"
@@ -327,6 +333,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               rotation={[0, 1.455, 0]}
               scale={12.5}
               imageRadius={0.4}
+              linkId='naivety'
             />
           </group>
 

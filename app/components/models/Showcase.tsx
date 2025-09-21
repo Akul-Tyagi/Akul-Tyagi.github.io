@@ -21,11 +21,21 @@ type ShowcaseProps = JSX.IntrinsicElements['group'] & {
   imageSegments?: number;         // rounded corner smoothness
   imageToneMapped?: boolean;      // default false
   rotationOrder?: THREE.EulerOrder;
+
+  // Linking – items with the same linkId scale together
+  linkId?: string;                // group key
+  hoverScale?: number;            // default 1.15
+  linkScale?: number;             // default = hoverScale
+  scaleDamp?: number;             // damping factor (default 7.5)
 };
 
 function isModelUrl(url: string) {
   return /\.(glb|gltf)$/i.test(url);
 }
+
+// Simple global registry to share hover state by linkId
+const linkRegistry = new Map<string, { activeCount: number }>();
+let nextShowcaseId = 1;
 
 const Showcase = ({
   url,
@@ -40,6 +50,10 @@ const Showcase = ({
   imageSegments = 12,
   imageToneMapped = false,
   rotationOrder = 'XYZ',
+  linkId,
+  hoverScale = 1.15,
+  linkScale,
+  scaleDamp = 7.5,
   ...rest
 }: ShowcaseProps) => {
   const isModel = isModelUrl(url);
@@ -67,36 +81,61 @@ const Showcase = ({
   }, [tex]);
 
   const groupRef = useRef<THREE.Group>(null);
-  
   useLayoutEffect(() => {
-    if (groupRef.current) {
-      groupRef.current.rotation.order = rotationOrder;
-    }
+    if (groupRef.current) groupRef.current.rotation.order = rotationOrder;
   }, [rotationOrder]);
-  
+
+  const idRef = useRef<number>(nextShowcaseId++);
   const scaleWrapRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
-  const aimHoverRef = useRef(false);
+  const prevSelfActiveRef = useRef(false);
   const scaleRef = useRef(1);
   const { camera, raycaster, gl } = useThree();
   const ndc = useMemo(() => new THREE.Vector2(0, 0), []);
 
-  useFrame((_, dt) => {
-    const locked = document.pointerLockElement === gl.domElement;
+  // Ensure registry bucket exists for this linkId
+  useEffect(() => {
+    if (!linkId) return;
+    if (!linkRegistry.has(linkId)) linkRegistry.set(linkId, { activeCount: 0 });
+    return () => {
+      // On unmount, if we were active, decrement
+      const bucket = linkRegistry.get(linkId);
+      if (!bucket) return;
+      if (prevSelfActiveRef.current) bucket.activeCount = Math.max(0, bucket.activeCount - 1);
+      if (bucket.activeCount <= 0) linkRegistry.delete(linkId);
+    };
+  }, [linkId]);
 
+  useFrame((_, dt) => {
     // Aim-hover while pointer‑locked: cast from screen center
     let aimHover = false;
+    const locked = document.pointerLockElement === gl.domElement;
     if (locked && groupRef.current) {
       ndc.set(0, 0);
       raycaster.setFromCamera(ndc, camera);
       const hits = raycaster.intersectObject(groupRef.current, true);
       aimHover = hits.length > 0;
     }
-    aimHoverRef.current = aimHover;
 
-    const active = hovered || aimHover;
-    const target = active ? 1.15 : 1.0; // subtle hover scale
-    scaleRef.current = THREE.MathUtils.damp(scaleRef.current, target, 7.5, dt);
+    const selfActive = hovered || aimHover;
+
+    // Update registry when self-active state changes
+    if (linkId && selfActive !== prevSelfActiveRef.current) {
+      const bucket = linkRegistry.get(linkId) ?? { activeCount: 0 };
+      bucket.activeCount += selfActive ? 1 : -1;
+      bucket.activeCount = Math.max(0, bucket.activeCount);
+      linkRegistry.set(linkId, bucket);
+      prevSelfActiveRef.current = selfActive;
+    }
+
+    const linkedActive =
+      linkId ? (linkRegistry.get(linkId)?.activeCount ?? 0) > 0 : selfActive;
+
+    const target = linkedActive
+      ? (linkId ? (linkScale ?? hoverScale) : hoverScale)
+      : 1.0;
+
+    scaleRef.current = THREE.MathUtils.damp(scaleRef.current, target, scaleDamp, dt);
     if (scaleWrapRef.current) scaleWrapRef.current.scale.setScalar(scaleRef.current);
   });
 
@@ -112,7 +151,11 @@ const Showcase = ({
       const locked = document.pointerLockElement === canvas;
       if (!locked) return; // normal mode handled by R3F onClick
       if (!groupRef.current) return;
-      if (aimHoverRef.current) {
+
+      // If linked group is active (aim-hover), treat as click
+      const active =
+        linkId ? (linkRegistry.get(linkId)?.activeCount ?? 0) > 0 : prevSelfActiveRef.current;
+      if (active) {
         try {
           onInteractStart?.();
           e.preventDefault();
@@ -125,7 +168,7 @@ const Showcase = ({
     };
     canvas.addEventListener('pointerdown', onPointerDown, { capture: true });
     return () => canvas.removeEventListener('pointerdown', onPointerDown, { capture: true } as any);
-  }, [gl, onInteractStart, onInteractEnd, href]);
+  }, [gl, onInteractStart, onInteractEnd, href, linkId]);
 
   // Apply user scale to models; for images, user scale is a uniform multiplier
   const imageUserScale = useMemo<[number, number, number]>(() => {
@@ -147,7 +190,7 @@ const Showcase = ({
       onPointerOut={(e) => {
         e.stopPropagation();
         setHovered(false);
-        document.body.style.cursor = '';
+        if (!document.pointerLockElement) document.body.style.cursor = '';
       }}
       onClick={(e) => {
         e.stopPropagation();
