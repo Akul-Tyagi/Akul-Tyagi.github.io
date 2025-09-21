@@ -22,7 +22,10 @@ const GLB_URLS = [
   'models/dfoonm.glb',
   'models/dfdf.glb',
   'models/IronThrone/model_0.obj',
-  'models/IronThrone/model_1.obj'
+  'models/IronThrone/model_1.obj',
+  'models/macbook.glb',
+  'models/samsung.glb',
+  'models/tv.glb'
 ];
 
 const TEX_URLS = [
@@ -31,7 +34,12 @@ const TEX_URLS = [
   'models/horse/Horse_low0_roughness.png',
   'models/horse/Horse_low0_ao.png',
   'models/horse/Horse_low0_metallic.png',
-  'models/IronThrone/sword_UV4.png'
+  'models/IronThrone/sword_UV4.png',
+  'models/images/naivetyhead.png',
+  'models/images/sscureapt.png',
+  'models/images/ssunagi.png',
+  'models/images/ssunagis.png',
+  'models/images/ssnaivety.png'
 ];
 
 const CITY_GLTF_PATH = 'models/city/scene.gltf';
