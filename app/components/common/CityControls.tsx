@@ -74,6 +74,22 @@ const CityControls = ({
   const UP = new THREE.Vector3(0,1,0);
 
   useEffect(() => {
+    if (enabled) return;
+    keys.current.clear();
+    shiftDown.current = false;
+    velocity.current.set(0, 0, 0);
+    targetVelocity.current.set(0, 0, 0);
+    stepImpulse.current.set(0, 0, 0);
+    lookBuffer.current.x = 0;
+    lookBuffer.current.y = 0;
+    sampleX.current = [];
+    sampleY.current = [];
+    pointerLocked.current = false;
+    firstClickDone.current = false;
+    document.exitPointerLock?.();
+  }, [enabled]);
+
+  useEffect(() => {
     if (!enabled) return;
     const e = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
     pitch.current = pitchTarget.current = e.x;

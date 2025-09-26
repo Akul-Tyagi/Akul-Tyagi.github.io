@@ -1,63 +1,94 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useScrollStore, useVideoStore } from '@stores';
+
+const TRIGGER_THRESHOLD = 0.995;
+const MIN_INTENT_PROGRESS = 0.6;
 
 const VideoOverlay = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [loaded, setLoaded] = useState(false);
 
-  const { isVideoPlaying, setVideoPlaying, setVideoPlayed, videoSrc, hasVideoPlayed } = useVideoStore();
-  const scrollProgress = useScrollStore((s) => s.scrollProgress);
+  // Video store pieces (each selector stable, no tuple needed)
+  const isVideoPlaying = useVideoStore(s => s.isVideoPlaying);
+  const hasVideoPlayed = useVideoStore(s => s.hasVideoPlayed);
+  const videoSrc = useVideoStore(s => s.videoSrc);
+  const setVideoPlaying = useVideoStore(s => s.setVideoPlaying);
+  const setVideoPlayed = useVideoStore(s => s.setVideoPlayed);
 
-  // Trigger near end of scroll
-  const isAtVideoTrigger = scrollProgress >= 0.995;
+  // Scroll store pieces (separate selectors avoid tuple typing + equality issues)
+  const scrollProgress = useScrollStore(s => s.scrollProgress);
+  const resetEpoch = useScrollStore(s => s.resetEpoch);
+  const guard = useScrollStore(s => s.guard);
+  const maxProgress = useScrollStore(s => s.maxProgress);
 
+  // Internal refs
+  const prevProgressRef = useRef(0);
+  const seenEpochRef = useRef(resetEpoch);
+
+  // Re-arm per epoch
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.readyState >= 2) setLoaded(true);
-  }, [videoSrc]);
+    if (seenEpochRef.current !== resetEpoch) {
+      seenEpochRef.current = resetEpoch;
+      prevProgressRef.current = 0;
+    }
+  }, [resetEpoch]);
 
-  // Start video (only if not already played before)
+  const atVideoTrigger = !guard && scrollProgress >= TRIGGER_THRESHOLD;
+
+  // Forward crossing trigger
   useEffect(() => {
-    if (hasVideoPlayed) return; // prevent any restart
-    if (isAtVideoTrigger && loaded && !isVideoPlaying) {
+    if (hasVideoPlayed) return;
+    if (isVideoPlaying) return;
+    if (guard) return;
+    if (maxProgress < MIN_INTENT_PROGRESS) return;
+
+    const prev = prevProgressRef.current;
+    const now = scrollProgress;
+    if (prev < TRIGGER_THRESHOLD && now >= TRIGGER_THRESHOLD) {
       setVideoPlaying(true);
     }
-  }, [isAtVideoTrigger, loaded, isVideoPlaying, hasVideoPlayed, setVideoPlaying]);
+    prevProgressRef.current = now;
+  }, [
+    scrollProgress,
+    guard,
+    maxProgress,
+    hasVideoPlayed,
+    isVideoPlaying,
+    setVideoPlaying
+  ]);
 
+  // Playback side-effects
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isVideoPlaying) {
+      try { video.pause(); } catch {}
       video.muted = true;
-      video.currentTime = 0;
+      try { video.currentTime = 0; } catch {}
       video.play().catch(() => {
         video.muted = true;
-        video.play().catch(() => {/* ignore */});
+        video.play().catch(() => {});
       });
       document.body.style.overflow = 'hidden';
     } else {
-      video.pause();
-      if (!isAtVideoTrigger) document.body.style.overflow = '';
+      try { video.pause(); } catch {}
+      if (!atVideoTrigger) document.body.style.overflow = '';
     }
-  }, [isVideoPlaying, isAtVideoTrigger]);
+  }, [isVideoPlaying, atVideoTrigger]);
 
   const finalize = () => {
+    if (!isVideoPlaying) return;
     setVideoPlaying(false);
-    setVideoPlayed(true); // marks as done forever
+    setVideoPlayed(true);
     document.body.style.overflow = '';
   };
 
   const handleVideoEnded = () => finalize();
   const handleSkip = () => finalize();
 
-  // Once video has played (ended or skipped) remove overlay entirely
-  if (hasVideoPlayed && !isVideoPlaying) {
-    return null;
-  }
+  if (hasVideoPlayed && !isVideoPlaying) return null;
 
   return (
     <div
@@ -66,9 +97,9 @@ const VideoOverlay = () => {
         inset: 0,
         zIndex: 9999,
         opacity: isVideoPlaying ? 1 : 0,
-        transition: 'opacity 0.01s ease',
+        transition: 'opacity 0.12s linear',
         pointerEvents: isVideoPlaying ? 'all' : 'none',
-        backgroundColor: '#000',
+        backgroundColor: '#000'
       }}
     >
       <video
@@ -79,8 +110,6 @@ const VideoOverlay = () => {
         autoPlay
         preload="auto"
         onEnded={handleVideoEnded}
-        onLoadedData={() => setLoaded(true)}
-        onCanPlayThrough={() => setLoaded(true)}
         style={{
           width: '100%',
           height: '100%',
@@ -88,21 +117,20 @@ const VideoOverlay = () => {
           scale: '1.07'
         }}
       />
-
       {isVideoPlaying && (
         <button
           onClick={handleSkip}
           style={{
             position: 'absolute',
-            bottom: '20px',
-            right: '20px',
+            bottom: 20,
+            right: 20,
             background: 'rgba(0,0,0,0.5)',
-            color: 'white',
+            color: '#fff',
             border: 'none',
             padding: '10px 20px',
-            borderRadius: '5px',
+            borderRadius: 6,
             cursor: 'pointer',
-            zIndex: 10000,
+            fontSize: 14
           }}
         >
           Skip

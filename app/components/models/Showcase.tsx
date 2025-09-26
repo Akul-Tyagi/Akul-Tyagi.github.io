@@ -4,6 +4,7 @@ import { Float, Image, useGLTF, useTexture } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { SkeletonUtils } from 'three-stdlib';
 import type { JSX } from 'react';
 
 type ShowcaseProps = JSX.IntrinsicElements['group'] & {
@@ -57,7 +58,12 @@ const Showcase = ({
   ...rest
 }: ShowcaseProps) => {
   const isModel = isModelUrl(url);
-  const gltf = isModel ? useGLTF(url) : null;
+  const rawGltf = isModel ? useGLTF(url) : null;
+  const clonedScene = useMemo(() => {
+    if (!rawGltf) return null;
+    const source = (rawGltf as any).scene ?? rawGltf;
+    return SkeletonUtils.clone(source);
+  }, [rawGltf]);
 
   // For images, load texture only to read natural size for aspect ratio
   const tex = !isModel ? useTexture(url) : null;
@@ -212,7 +218,7 @@ const Showcase = ({
         <Float speed={floatSpeed} floatIntensity={floatIntensity} rotationIntensity={rotationIntensity}>
           {isModel ? (
             <group scale={scale as any} dispose={null}>
-              <primitive object={(gltf as any)?.scene ?? gltf} />
+              {clonedScene && <primitive object={clonedScene} />}
             </group>
           ) : (
             <Image

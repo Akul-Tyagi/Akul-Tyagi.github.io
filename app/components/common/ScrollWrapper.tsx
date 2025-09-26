@@ -5,14 +5,15 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { isMobile } from "react-device-detect";
 import * as THREE from "three";
 import { HORSE_PIN_END, SECOND_TILT_LEN, Z2_SCROLL_START, Z2_SCROLL_LEN, Z2_SCROLL_DISTANCE } from '@constants';
-import { useRef } from "react";
-import { usePortalStore, useScrollStore, useVideoStore } from "@stores";
+import { useEffect, useRef } from "react";
+import { usePortalStore, useScrollStore } from "@stores";
 
 const ScrollWrapper = (props: { children: React.ReactNode | React.ReactNode[]}) => {
   const { camera } = useThree();
   const data = useScroll();
   const isActive = usePortalStore((state) => !!state.activePortalId);
   const setScrollProgress = useScrollStore((state) => state.setScrollProgress);
+  const setScrollResetter = useScrollStore((state) => state.setScrollResetter);
 
   // Locks so we freeze Y/Z at the hand-off moment
   const zLockRef = useRef<number | null>(null);
@@ -73,6 +74,41 @@ const ScrollWrapper = (props: { children: React.ReactNode | React.ReactNode[]}) 
   });
 
   const children = Array.isArray(props.children) ? props.children : [props.children];
+
+  useEffect(() => {
+    if (!data) return;
+
+    const reset = () => {
+      const scrollState: any = data;
+      try {
+        if (scrollState?.scroll) scrollState.scroll.current = 0;
+        if (scrollState?.el) {
+          scrollState.el.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        }
+        // Force internal metrics (defensive against stale offset / inertia)
+        scrollState.offset = 0;
+        scrollState.delta = 0;
+      } catch {}
+      setScrollProgress(0);
+
+      // Second pass next frame (some browsers apply scroll asynchronously)
+      requestAnimationFrame(() => {
+        try {
+          if (scrollState?.scroll) scrollState.scroll.current = 0;
+          if (scrollState?.el) {
+            scrollState.el.scrollTop = 0;
+            scrollState.el.scrollLeft = 0;
+          }
+          scrollState.offset = 0;
+          scrollState.delta = 0;
+        } catch {}
+        setScrollProgress(0);
+      });
+    };
+
+    setScrollResetter(reset);
+    return () => setScrollResetter(null);
+  }, [data, setScrollProgress, setScrollResetter]);
 
   return <>
     {children.map((child, index) => {

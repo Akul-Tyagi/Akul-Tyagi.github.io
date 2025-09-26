@@ -23,7 +23,7 @@ const GLB_URLS = [
   'models/dfdf.glb',
   'models/IronThrone/model_0.obj',
   'models/IronThrone/model_1.obj',
-  'models/macbook.glb',
+  'models/monitor.glb',
   'models/samsung.glb',
   'models/tv.glb'
 ];

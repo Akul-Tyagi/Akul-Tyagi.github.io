@@ -1,6 +1,6 @@
 'use client';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Suspense, useRef, useEffect, useState } from 'react';
+import { Suspense, useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import CityModel from '../models/CityModel';
 import CityControls from './CityControls';
@@ -8,6 +8,7 @@ import CityTexts from './CityTexts';
 import IronThroneHotspot from './IronThroneHotspot';
 import SocialFloatingGlb from '../models/SocialFloatingGlb';
 import Showcase from '../models/Showcase';
+import { usePortalStore, useScrollStore, useVideoStore } from '@stores';
 
 interface CitySceneProps {
   active: boolean;
@@ -16,19 +17,60 @@ interface CitySceneProps {
 
 const FALL_DURATION = 4;
 
+const GO_BACK_THRESHOLD_Z = 160;          // single threshold
+const GO_BACK_HALF_WIDTH = 12.5;   
+
+const GoBackTrigger = ({ active, onTrigger }: { active: boolean; onTrigger: () => void }) => {
+  const { camera } = useThree();
+  const armedRef = useRef(true);          // allow triggering once per activation
+  const prevZRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Reset when scene (re)activates
+    if (active) {
+      armedRef.current = true;
+      prevZRef.current = null;
+    }
+  }, [active]);
+
+  useFrame(() => {
+    if (!active || !armedRef.current) return;
+    const { x, z } = camera.position;
+    if (prevZRef.current === null) {
+      prevZRef.current = z;
+      return;
+    }
+    // Detect forward crossing of threshold inside corridor
+    if (
+      prevZRef.current < GO_BACK_THRESHOLD_Z &&
+      z >= GO_BACK_THRESHOLD_Z &&
+      Math.abs(x) <= GO_BACK_HALF_WIDTH
+    ) {
+      armedRef.current = false;
+      onTrigger();
+    }
+    prevZRef.current = z;
+  });
+
+  return null;
+};
+
 const CameraFall = ({ active, onFinished }: { active: boolean; onFinished?: () => void }) => {
   const { camera, scene } = useThree();
   const progressRef = useRef(0);
   const finishedRef = useRef(false);
 
-  const startPos = new THREE.Vector3(0, 90, 0);
-  const endPos = new THREE.Vector3(0, 11, 28);
+  const startPos = new THREE.Vector3(0, 340, 0);
+  const endPos = new THREE.Vector3(0, 11, 64);
   const lookTarget = new THREE.Vector3(0, 6, 0);
 
   useEffect(() => {
+    progressRef.current = 0;
+    finishedRef.current = false;
+    if (!active) return;
     camera.position.copy(startPos);
     camera.quaternion.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
-  }, [camera]);
+  }, [active, camera]);
 
   useFrame((_, delta) => {
     if (!active || finishedRef.current) return;
@@ -61,6 +103,21 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const [showHint, setShowHint] = useState(true);
   const [uiCaptured, setUiCaptured] = useState(false); // disable controls when typing
 
+  const setVideoPlaying = useVideoStore(s => s.setVideoPlaying);
+  const setVideoPlayed = useVideoStore(s => s.setVideoPlayed);
+  const resetScrollToStart = useScrollStore(s => s.resetScrollToStart);
+  const setScrollProgress = useScrollStore(s => s.setScrollProgress);
+  const setActivePortal = usePortalStore(s => s.setActivePortal);
+  const beginEpochReset = useScrollStore(s => s.beginEpochReset);
+
+  useEffect(() => {
+    if (!active) {
+      setFallDone(false);
+      setShowHint(true);
+      setUiCaptured(false);
+    }
+  }, [active]);
+
   useEffect(() => {
     if (fallDone) {
       const id = setTimeout(() => setShowHint(false), 4500);
@@ -75,6 +132,36 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
     minZ: -300,
     maxZ: 300
   });
+
+  const handleReturnToHero = useCallback(() => {
+    document.exitPointerLock?.();
+    document.body.style.cursor = '';
+
+    // Start a new scroll epoch (activates guard & resets progression tracking)
+    beginEpochReset();
+
+    // Perform DOM / ScrollControls reset
+    resetScrollToStart();
+    setScrollProgress(0);
+
+    // Defer video + portal flags until after scroll settled (still inside guard window)
+    requestAnimationFrame(() => {
+      setVideoPlaying(false);
+      setVideoPlayed(false);
+      setActivePortal(null);
+    });
+
+    setFallDone(false);
+    setShowHint(true);
+    setUiCaptured(false);
+  }, [
+    beginEpochReset,
+    resetScrollToStart,
+    setScrollProgress,
+    setVideoPlaying,
+    setVideoPlayed,
+    setActivePortal
+  ]);
 
   return (
     <div
@@ -109,6 +196,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
 
         <Suspense fallback={null}>
           <CameraFall active={active} onFinished={() => setFallDone(true)} />
+          <GoBackTrigger active={active && fallDone} onTrigger={handleReturnToHero} />
           <group scale={[7.5, 7.5, 7.5]}>
             <CityModel />
           </group>
@@ -117,7 +205,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             items={[
               {
                 id: 't1',
-                text: 'CONTACT ME',
+                text: 'GO BACK',
                 position: [0, 16, 73],
                 rotation: [0, 3.1, 0],
                 fontSize: 7,
@@ -258,12 +346,12 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
           <group>
             {/* 3D models */}
             <Showcase
-              url="models/macbook.glb"
+              url="models/monitor.glb"
               href='https://cureapt.vercel.app/'
-              position={[-120, 2, 28]}
+              position={[-128, 12, 28]}
               rotationOrder="YXZ"
-              rotation={[0, 3.17, 0.03]}
-              scale={64}
+              rotation={[0, 1.6, 0]}
+              scale={30}
               linkId='cureapt'
             />
             <Showcase
@@ -276,11 +364,27 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             />
             <Showcase
               url="models/tv.glb"
-              position={[5.5, 8.6, 18]}
-              rotation={[0, -0.2, 0]}
-              scale={2.6}
-              floatSpeed={2}
-              floatIntensity={1.2}
+              href='https://unagico.vercel.app/'
+              position={[-207, 9.7, -0.15]}
+              rotation={[0, 1.6, 0]}
+              scale={12}
+              linkId='unagi'
+            />
+            <Showcase
+              url="models/tv.glb"
+              href='https://unagico.vercel.app/'
+              position={[-199, 9.65, -24.7]}
+              rotation={[0, 0.91, 0]}
+              scale={12}
+              linkId='unagi'
+            />
+            <Showcase
+              url="models/tv.glb"
+              href='https://unagico.vercel.app/'
+              position={[-199, 9.65, 25]}
+              rotation={[0, 2.157, 0]}
+              scale={12}
+              linkId='unagi'
             />
 
             {/* Images */}
@@ -291,39 +395,44 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               rotation={[0, 1.5, 0]}
               scale={14}
               imageRadius={0.3}
-              floatSpeed={1.5}
-              floatIntensity={0.7}
               
             />
             <Showcase
               url="models/images/sscureapt.png"
               href='https://cureapt.vercel.app/'
-              position={[-127.7, 11.29, 28.23]}
+              position={[-127.98, 12, 27.7]}
               rotationOrder="YXZ"
-              rotation={[0.03, 1.6, 0]}
-              scale={13}
-              imageRadius={0.5}
-              hoverScale={1.25}
-              scaleDamp={7}
+              rotation={[0, 1.6, 0]}
+              scale={12}
+              scaleDamp={6.1}
               linkId='cureapt'
             />
             <Showcase
               url="models/images/ssunagi.png"
-              position={[7, 14, 14]}
-              rotation={[0, -0.1, 0]}
-              scale={6}
-              imageRadius={0.3}
-              floatSpeed={1.5}
-              floatIntensity={0.7}
+              position={[-199, 10.03, -24.65]}
+              rotation={[0, 0.91, 0]}
+              href='https://unagico.vercel.app/'
+              scale={13.1}
+              imageRadius={0.5}
+              linkId='unagi'
             />
             <Showcase
               url="models/images/ssunagis.png"
-              position={[-3.5, 13.5, 12]}
-              rotation={[0, 0.05, 0]}
-              scale={5}
-              imageRadius={0.25}
-              floatSpeed={1.6}
-              floatIntensity={0.7}
+              position={[-198.6, 10, 25.65]}
+              rotation={[0, 2.156, 0]}
+              href='https://unagico.vercel.app/'
+              scale={13.1}
+              imageRadius={0.5}
+              linkId='unagi'
+            />
+            <Showcase
+              url="models/images/sslinkedin.png"
+              position={[-207, 10.1, -0.15]}
+              rotation={[0, 1.6, 0]}
+              href='https://unagico.vercel.app/'
+              scale={13.1}
+              imageRadius={0.5}
+              linkId='unagi'
             />
             <Showcase
               url="models/images/ssnaivety.png"
