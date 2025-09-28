@@ -6,7 +6,7 @@ import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 // Lightweight hidden warm-up to push textures & shaders to GPU before city scene mount
-const CITY_PATH = 'models/city/scene.gltf';
+const CITY_PATH = '/models/city/scene.gltf';
 
 const CityWarmup = () => {
   const ready = useCityStore(s => s.cityReady);

@@ -11,7 +11,7 @@ type CityModelProps = React.ComponentProps<'group'> & {
   toneDownEmissive?: boolean;
 };
 
-const CITY_MODEL_PATH = 'models/city/scene.gltf';
+const CITY_MODEL_PATH = '/models/city/scene.gltf';
 
 const CityModel = ({
   castShadows = false,

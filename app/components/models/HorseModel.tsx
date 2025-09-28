@@ -43,21 +43,21 @@ const HorseModel = (props: Partial<THREE.Object3D>) => {
   const { camera } = useThree();
   
   // Load all horse models
-  const horse0 = useGLTF('models/horse/model_0.glb', true) as unknown as GLTFResult;
-  const horse1 = useGLTF('models/horse/model_1.glb', true) as unknown as GLTFResult;
-  const horse2 = useGLTF('models/horse/model_2.glb', true) as unknown as GLTFResult;
-  const horse3 = useGLTF('models/horse/model_3.glb', true) as unknown as GLTFResult;
-  const horse4 = useGLTF('models/horse/model_4.glb', true) as unknown as GLTFResult;
+  const horse0 = useGLTF('/models/horse/model_0.glb', true) as unknown as GLTFResult;
+  const horse1 = useGLTF('/models/horse/model_1.glb', true) as unknown as GLTFResult;
+  const horse2 = useGLTF('/models/horse/model_2.glb', true) as unknown as GLTFResult;
+  const horse3 = useGLTF('/models/horse/model_3.glb', true) as unknown as GLTFResult;
+  const horse4 = useGLTF('/models/horse/model_4.glb', true) as unknown as GLTFResult;
   
   const horses = [horse0, horse1, horse2, horse3, horse4];
   
   // Load textures from the horse folder (adjust these names based on your actual texture files)
   const textures = useTexture({
-    map: 'models/horse/Horse_low0_albedo.png', // Replace with your actual texture file names
-    normalMap: 'models/horse/Horse_low0_normal.png', // Optional - if you have normal maps
-    roughnessMap: 'models/horse/Horse_low0_roughness.png', // Optional - if you have roughness maps
-    aoMap: 'models/horse/Horse_low0_ao.png',
-    metalnessMap: 'models/horse/Horse_low0_metallic.png',
+    map: '/models/horse/Horse_low0_albedo.png', // Replace with your actual texture file names
+    normalMap: '/models/horse/Horse_low0_normal.png', // Optional - if you have normal maps
+    roughnessMap: '/models/horse/Horse_low0_roughness.png', // Optional - if you have roughness maps
+    aoMap: '/models/horse/Horse_low0_ao.png',
+    metalnessMap: '/models/horse/Horse_low0_metallic.png',
 
     // Add more textures as needed based on what you have in the folder
   });
@@ -203,10 +203,10 @@ useFrame((_, delta) => {
   );
 };
 
-useGLTF.preload('models/horse/model_0.glb');
-useGLTF.preload('models/horse/model_1.glb');
-useGLTF.preload('models/horse/model_2.glb');
-useGLTF.preload('models/horse/model_3.glb');
-useGLTF.preload('models/horse/model_4.glb');
+useGLTF.preload('/models/horse/model_0.glb');
+useGLTF.preload('/models/horse/model_1.glb');
+useGLTF.preload('/models/horse/model_2.glb');
+useGLTF.preload('/models/horse/model_3.glb');
+useGLTF.preload('/models/horse/model_4.glb');
 
 export default HorseModel;

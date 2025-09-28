@@ -13,7 +13,7 @@ type TrainProps = JSX.IntrinsicElements['group'] & {
 };
 
 const TrainModel = ({ scale: modelScale = 1, appearAt = 0.7, ...rest }: TrainProps) => {
-  const gltf = useGLTF('models/train.glb');
+  const gltf = useGLTF('/models/train.glb');
 
   const rootRef = useRef<THREE.Group>(null);
   const lightsGroupRef = useRef<THREE.Group>(null);
@@ -60,6 +60,6 @@ const TrainModel = ({ scale: modelScale = 1, appearAt = 0.7, ...rest }: TrainPro
   );
 };
 
-useGLTF.preload('models/train.glb');
+useGLTF.preload('/models/train.glb');
 
 export default TrainModel;

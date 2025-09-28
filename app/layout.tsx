@@ -13,6 +13,11 @@ const vercettiFont = localFont({
   variable: "--font-vercetti",
 });
 
+const buzzerFont = localFont({
+  src: "../public/buzzer.otf",
+  variable: "--font-buzzer",
+});
+
 export const metadata: Metadata = {
   title: "Akul Tyagi",
   description: "A frontend developer by profession, a creative at heart.",
@@ -72,7 +77,7 @@ export default function RootLayout({
         <link rel="preload" as="video" href="/videos/Falling.mp4" type="video/mp4" />
       </head>
       <body
-        className={`${soriaFont.variable} ${vercettiFont.variable} font-sans antialiased`}
+        className={`${soriaFont.variable} ${vercettiFont.variable} ${buzzerFont.variable} font-sans antialiased`}
       >
         {children}
       </body>

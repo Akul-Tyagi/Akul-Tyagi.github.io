@@ -306,7 +306,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
 
           <group>
             <SocialFloatingGlb
-              url="models/df.glb"
+              url="/models/df.glb"
               href="https://leetcode.com/u/AKUL_TYAGI/"
               position={[220, 8, 28]}
               rotation={[0, 4.7, 0]}
@@ -315,7 +315,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               floatIntensity={8}
             />
             <SocialFloatingGlb
-              url="models/dfnika.glb"
+              url="/models/dfnika.glb"
               href="https://www.linkedin.com/in/akul-tyagi/"
               position={[170, 5, -28]}
               rotation={[0, 4.7, 0]}
@@ -324,7 +324,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               floatIntensity={7}
             />
             <SocialFloatingGlb
-              url="models/dfoonm.glb"
+              url="/models/dfoonm.glb"
               href="https://github.com/Akul-Tyagi"
               position={[70, 8, -28]}
               rotation={[0, 4.7, 0]}
@@ -333,7 +333,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               floatIntensity={8}
             />
             <SocialFloatingGlb
-              url="models/dfdf.glb"
+              url="/models/dfdf.glb"
               href="https://in.pinterest.com/VincenzoSanji/"
               position={[120, 7, 28]}
               rotation={[0, 4.7, 0]}
@@ -346,7 +346,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
           <group>
             {/* 3D models */}
             <Showcase
-              url="models/monitor.glb"
+              url="/models/monitor.glb"
               href='https://cureapt.vercel.app/'
               position={[-128, 12, 28]}
               rotationOrder="YXZ"
@@ -355,7 +355,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='cureapt'
             />
             <Showcase
-              url="models/samsung.glb"
+              url="/models/samsung.glb"
               href='https://play.google.com/store/apps/details?id=com.abundance.naivety'
               position={[-64, 9, -37]}
               rotation={[0, 4.6, 0]}
@@ -363,7 +363,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='naivety'
             />
             <Showcase
-              url="models/tv.glb"
+              url="/models/tv.glb"
               href='https://unagico.vercel.app/'
               position={[-207, 9.7, -0.15]}
               rotation={[0, 1.6, 0]}
@@ -371,7 +371,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='unagi'
             />
             <Showcase
-              url="models/tv.glb"
+              url="/models/tv.glb"
               href='https://unagico.vercel.app/'
               position={[-199, 9.65, -24.7]}
               rotation={[0, 0.91, 0]}
@@ -379,7 +379,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='unagi'
             />
             <Showcase
-              url="models/tv.glb"
+              url="/models/tv.glb"
               href='https://unagico.vercel.app/'
               position={[-199, 9.65, 25]}
               rotation={[0, 2.157, 0]}
@@ -389,7 +389,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
 
             {/* Images */}
             <Showcase
-              url="models/images/naivetyhead.png"
+              url="/models/images/naivetyhead.png"
               href='https://play.google.com/store/apps/details?id=com.abundance.naivety'
               position={[-66, 9, -25]}
               rotation={[0, 1.5, 0]}
@@ -398,7 +398,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               
             />
             <Showcase
-              url="models/images/sscureapt.png"
+              url="/models/images/sscureapt.png"
               href='https://cureapt.vercel.app/'
               position={[-127.98, 12, 27.7]}
               rotationOrder="YXZ"
@@ -408,7 +408,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='cureapt'
             />
             <Showcase
-              url="models/images/ssunagi.png"
+              url="/models/images/ssunagi.png"
               position={[-199, 10.03, -24.65]}
               rotation={[0, 0.91, 0]}
               href='https://unagico.vercel.app/'
@@ -417,7 +417,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='unagi'
             />
             <Showcase
-              url="models/images/ssunagis.png"
+              url="/models/images/ssunagis.png"
               position={[-198.6, 10, 25.65]}
               rotation={[0, 2.156, 0]}
               href='https://unagico.vercel.app/'
@@ -426,7 +426,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='unagi'
             />
             <Showcase
-              url="models/images/sslinkedin.png"
+              url="/models/images/sslinkedin.png"
               position={[-207, 10.1, -0.15]}
               rotation={[0, 1.6, 0]}
               href='https://unagico.vercel.app/'
@@ -435,7 +435,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
               linkId='unagi'
             />
             <Showcase
-              url="models/images/ssnaivety.png"
+              url="/models/images/ssnaivety.png"
               href='https://play.google.com/store/apps/details?id=com.abundance.naivety'
               position={[-64.07, 8.25, -36.9]}
               rotationOrder="YXZ"
