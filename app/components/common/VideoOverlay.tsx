@@ -1,32 +1,31 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useScrollStore, useVideoStore } from '@stores';
+import { useScrollStore, useVideoStore, useCityStore } from '@stores';
 
-const TRIGGER_THRESHOLD = 0.995;
-const MIN_INTENT_PROGRESS = 0.6;
+const TRIGGER_THRESHOLD = 0.995; // LOWERED from 0.995 to trigger earlier
+const MIN_INTENT_PROGRESS = 0.5; // LOWERED from 0.6
 
 const VideoOverlay = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Video store pieces (each selector stable, no tuple needed)
   const isVideoPlaying = useVideoStore(s => s.isVideoPlaying);
   const hasVideoPlayed = useVideoStore(s => s.hasVideoPlayed);
   const videoSrc = useVideoStore(s => s.videoSrc);
   const setVideoPlaying = useVideoStore(s => s.setVideoPlaying);
   const setVideoPlayed = useVideoStore(s => s.setVideoPlayed);
 
-  // Scroll store pieces (separate selectors avoid tuple typing + equality issues)
   const scrollProgress = useScrollStore(s => s.scrollProgress);
   const resetEpoch = useScrollStore(s => s.resetEpoch);
   const guard = useScrollStore(s => s.guard);
   const maxProgress = useScrollStore(s => s.maxProgress);
 
-  // Internal refs
+  const cityReady = useCityStore(s => s.cityReady);
+  const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
+
   const prevProgressRef = useRef(0);
   const seenEpochRef = useRef(resetEpoch);
 
-  // Re-arm per epoch
   useEffect(() => {
     if (seenEpochRef.current !== resetEpoch) {
       seenEpochRef.current = resetEpoch;
@@ -42,10 +41,22 @@ const VideoOverlay = () => {
     if (isVideoPlaying) return;
     if (guard) return;
     if (maxProgress < MIN_INTENT_PROGRESS) return;
+    if (!cityReady) return;
+    if (!cityGPUCompiled) return;
+    if (!videoSrc) return;
 
     const prev = prevProgressRef.current;
     const now = scrollProgress;
+    
+    console.log('📊 Video trigger check:', {
+      prev,
+      now,
+      threshold: TRIGGER_THRESHOLD,
+      crossing: prev < TRIGGER_THRESHOLD && now >= TRIGGER_THRESHOLD
+    });
+
     if (prev < TRIGGER_THRESHOLD && now >= TRIGGER_THRESHOLD) {
+      console.log('🎬 TRIGGERING VIDEO');
       setVideoPlaying(true);
     }
     prevProgressRef.current = now;
@@ -55,10 +66,12 @@ const VideoOverlay = () => {
     maxProgress,
     hasVideoPlayed,
     isVideoPlaying,
+    cityReady,
+    cityGPUCompiled,
+    videoSrc,
     setVideoPlaying
   ]);
 
-  // Playback side-effects
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;

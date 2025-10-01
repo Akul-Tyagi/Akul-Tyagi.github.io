@@ -8,7 +8,7 @@ import CityTexts from './CityTexts';
 import IronThroneHotspot from './IronThroneHotspot';
 import SocialFloatingGlb from '../models/SocialFloatingGlb';
 import Showcase from '../models/Showcase';
-import { usePortalStore, useScrollStore, useVideoStore } from '@stores';
+import { usePortalStore, useScrollStore, useVideoStore, useCityStore } from '@stores';
 
 interface CitySceneProps {
   active: boolean;
@@ -110,6 +110,9 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const setActivePortal = usePortalStore(s => s.setActivePortal);
   const beginEpochReset = useScrollStore(s => s.beginEpochReset);
 
+  const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
+  const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
+
   useEffect(() => {
     if (!active) {
       setFallDone(false);
@@ -124,6 +127,8 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
       return () => clearTimeout(id);
     }
   }, [fallDone]);
+
+  const isVideoPlaying = useVideoStore(s => s.isVideoPlaying);
 
   // Adjust roam limits (shrink a bit inside model extents)
   const roamBounds = useRef({
@@ -177,6 +182,8 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
     >
       <Canvas
         shadows={false}
+        // STOP rendering when video plays OR when inactive
+        frameloop={isVideoPlaying ? 'never' : (active ? 'always' : (cityGPUCompiled ? 'demand' : 'always'))}
         gl={{
           powerPreference: 'high-performance',
         }}

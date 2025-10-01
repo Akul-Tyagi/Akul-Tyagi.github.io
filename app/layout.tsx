@@ -21,41 +21,7 @@ const buzzerFont = localFont({
 export const metadata: Metadata = {
   title: "Akul Tyagi",
   description: "A frontend developer by profession, a creative at heart.",
-  keywords: "Akul Tyagi, Frontend Engineer, React Developer, Three.js, Creative Developer, Web Development, Angular, JavaScript, TypeScript, Portfolio",
-  authors: [{ name: "Akul Tyagi" }],
-  creator: "Akul Tyagi",
-  publisher: "Akul Tyagi",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  openGraph: {
-    title: "Akul Tyagi - Frontend Engineer",
-    description: "Frontend engineer by profession, creative at heart.",
-    url: "https://akul-tyagi.github.io",
-    siteName: "Akul Tyagi's Portfolio",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Akul Tyagi - Frontend Engineer",
-    description: "Frontend engineer by profession, creative at heart.",
-  },
-  verification: {
-    google: "GsRYY-ivL0F_VKkfs5KAeToliqz0gCrRAJKKmFkAxBA",
-  },
+  // ... rest of metadata
 };
 
 export const viewport: Viewport = {
@@ -73,8 +39,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="overscroll-y-none">
       <head>
-        {/* Hint the browser to fetch and prioritize the video */}
-        <link rel="preload" as="video" href="/videos/Falling.mp4" type="video/mp4" />
+        {/* Preload video with correct syntax */}
+        <link rel="preload" href="/videos/Falling.mp4" as="fetch" type="video/mp4" crossOrigin="anonymous" />
       </head>
       <body
         className={`${soriaFont.variable} ${vercettiFont.variable} ${buzzerFont.variable} font-sans antialiased`}

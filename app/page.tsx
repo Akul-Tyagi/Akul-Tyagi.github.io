@@ -1,27 +1,33 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useVideoStore } from './stores/videoStore';
-import { useCityStore } from './stores/cityStore';
+import { useVideoStore, useCityStore } from '@stores';
 import CanvasLoader from "./components/common/CanvasLoader";
 import ScrollWrapper from "./components/common/ScrollWrapper";
 import Hero from "./components/hero";
 import CityScene from "./components/common/CityScene";
+import DebugPanel from './components/common/DebugPanel';
 
 const Home = () => {
   const hasVideoPlayed = useVideoStore(s => s.hasVideoPlayed);
   const isVideoPlaying = useVideoStore(s => s.isVideoPlaying);
   const cityReady = useCityStore(s => s.cityReady);
+  const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
 
-  // Phase2 active exactly when video finished
+  // City becomes active after video completely finished
   const cityActive = useMemo(
-    () => hasVideoPlayed && !isVideoPlaying && cityReady,
-    [hasVideoPlayed, isVideoPlaying, cityReady]
+    () => hasVideoPlayed && !isVideoPlaying && cityReady && cityGPUCompiled,
+    [hasVideoPlayed, isVideoPlaying, cityReady, cityGPUCompiled]
   );
+
+  // Only mount City Scene AFTER video has played (not during)
+  const shouldMountCity = hasVideoPlayed || cityActive;
 
   return (
     <>
-      {/* Phase 1 scroll scene (kept mounted, just faded out) */}
+      <DebugPanel />
+      
+      {/* Phase 1 scroll scene */}
       <div
         style={{
           position: 'fixed',
@@ -39,20 +45,8 @@ const Home = () => {
         </CanvasLoader>
       </div>
 
-      {/* City scene always mounted & pre-rendered; activates instantly */}
-      <CityScene active={cityActive} />
-
-      {/* Only show a prep overlay if video ended but city still finalizing (rare) */}
-      {hasVideoPlayed && !isVideoPlaying && !cityReady && (
-        <div style={{
-          position:'fixed', inset:0, display:'flex',
-          alignItems:'center', justifyContent:'center',
-          background:'#000', color:'#888', fontFamily:'monospace',
-          zIndex: 5, fontSize: 14
-        }}>
-          Preparing city…
-        </div>
-      )}
+      {/* City scene - ONLY mount after video played */}
+      {shouldMountCity && <CityScene active={cityActive} />}
     </>
   );
 };

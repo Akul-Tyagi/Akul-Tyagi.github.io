@@ -194,7 +194,7 @@ useFrame((_, delta) => {
   return (
     <group ref={rootRef} {...props} dispose={null} frustumCulled={false}>
       {/* Light attached to the horse with your exact settings */}
-      <pointLight position={[1, 1, -2.5]} intensity={80} distance={10} />
+      <pointLight position={[1, 1, -2.5]} intensity={82} distance={10} />
 
       <group ref={modelRef} position={[0, 0, 0]} scale={[2, 2, 2]}>
         {renderHorseParts()}
