@@ -60,7 +60,7 @@ export const IMAGE_URLS = [
 export const ASSET_MANIFEST = {
   video: VIDEO_PATH,
   phase1Glbs: [...HERO_GLBS, ...HORSE_MODELS],
-  phase2Glbs: [...CITY_GLBS], // Remove city GLTF from preloader
+  phase2Glbs: [CITY_GLTF_PATH, ...CITY_GLBS],
   objs: OBJ_URLS,
   images: IMAGE_URLS,
 };

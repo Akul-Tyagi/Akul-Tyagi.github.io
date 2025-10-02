@@ -15,7 +15,20 @@ interface CitySceneProps {
   fade?: boolean;
 }
 
-const FALL_DURATION = 4;
+const FALL_DURATION = 3;
+const MAX_FRAME_STEP = 1 / 60;
+
+const START_POS = new THREE.Vector3(0, 340, 0);
+const END_POS = new THREE.Vector3(0, 11, 64);
+const LOOK_TARGET = new THREE.Vector3(0, 6, 0);
+
+const START_QUAT = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+const FINAL_QUAT = (() => {
+  const tempCam = new THREE.PerspectiveCamera();
+  tempCam.position.copy(END_POS);
+  tempCam.lookAt(LOOK_TARGET);
+  return tempCam.quaternion.clone();
+})();
 
 const GO_BACK_THRESHOLD_Z = 160;          // single threshold
 const GO_BACK_HALF_WIDTH = 12.5;   
@@ -55,46 +68,64 @@ const GoBackTrigger = ({ active, onTrigger }: { active: boolean; onTrigger: () =
   return null;
 };
 
-const CameraFall = ({ active, onFinished }: { active: boolean; onFinished?: () => void }) => {
+const CameraFall = ({ active, onBegin, onFinished }: { active: boolean; onBegin?: () => void; onFinished?: () => void }) => {
   const { camera, scene } = useThree();
   const progressRef = useRef(0);
   const finishedRef = useRef(false);
-
-  const startPos = new THREE.Vector3(0, 340, 0);
-  const endPos = new THREE.Vector3(0, 11, 64);
-  const lookTarget = new THREE.Vector3(0, 6, 0);
+  const initializedRef = useRef(false);
+  const startedRef = useRef(false);
+  const tmpQuatRef = useRef(new THREE.Quaternion());
 
   useEffect(() => {
-    progressRef.current = 0;
-    finishedRef.current = false;
-    if (!active) return;
-    camera.position.copy(startPos);
-    camera.quaternion.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+    if (!scene.fog) scene.fog = new THREE.FogExp2('#0a0d18', 0.009);
+  }, [scene]);
+
+  useEffect(() => {
+    if (!active) {
+      progressRef.current = 0;
+      finishedRef.current = false;
+      initializedRef.current = false;
+      startedRef.current = false;
+      return;
+    }
+
+    camera.position.copy(START_POS);
+    camera.quaternion.copy(START_QUAT);
+    camera.updateMatrixWorld(true);
+    initializedRef.current = true;
   }, [active, camera]);
 
   useFrame((_, delta) => {
-    if (!active || finishedRef.current) return;
-    progressRef.current = Math.min(1, progressRef.current + delta / FALL_DURATION);
-    const t = 1 - Math.pow(1 - progressRef.current, 3);
+    if (!active || !initializedRef.current || finishedRef.current) return;
 
-    camera.position.lerpVectors(startPos, endPos, t);
+    if (!startedRef.current) {
+      startedRef.current = true;
+      onBegin?.();
+    }
 
-    const fromQuat = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
-    const toQuat = new THREE.Quaternion();
-    const tmp = camera.clone();
-    tmp.position.copy(camera.position);
-    tmp.lookAt(lookTarget);
-    toQuat.copy(tmp.quaternion);
-    camera.quaternion.slerpQuaternions(fromQuat, toQuat, t);
+    const dt = Math.min(delta, MAX_FRAME_STEP);
+    progressRef.current = Math.min(1, progressRef.current + dt / FALL_DURATION);
+    const progress = progressRef.current;
 
-    if (t === 1 && !finishedRef.current) {
-      camera.lookAt(lookTarget);
+    const easedPos = 0.5 - 0.5 * Math.cos(Math.PI * progress);
+    camera.position.lerpVectors(START_POS, END_POS, easedPos);
+
+    const orientBlend = THREE.MathUtils.smootherstep(progress, 0.52, 0.98);
+    const q = tmpQuatRef.current;
+    q.copy(START_QUAT).slerp(FINAL_QUAT, orientBlend);
+    camera.quaternion.copy(q);
+
+    camera.updateMatrixWorld(true);
+
+    if (progress >= 1 && !finishedRef.current) {
       finishedRef.current = true;
-      if (onFinished) onFinished(); 
+      camera.position.copy(END_POS);
+      camera.quaternion.copy(FINAL_QUAT);
+      camera.updateMatrixWorld(true);
+      onFinished?.();
     }
   });
 
-  if (!scene.fog) scene.fog = new THREE.FogExp2('#0a0d18', 0.009);
   return null;
 };
 
@@ -102,6 +133,9 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const [fallDone, setFallDone] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const [uiCaptured, setUiCaptured] = useState(false); // disable controls when typing
+  const [introMaskVisible, setIntroMaskVisible] = useState(false);
+  const [maskOpacity, setMaskOpacity] = useState(0);
+  const maskFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setVideoPlaying = useVideoStore(s => s.setVideoPlaying);
   const setVideoPlayed = useVideoStore(s => s.setVideoPlayed);
@@ -114,16 +148,49 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
 
   useEffect(() => {
-    if (!active) {
+    if (maskFadeTimeoutRef.current) {
+      clearTimeout(maskFadeTimeoutRef.current);
+      maskFadeTimeoutRef.current = null;
+    }
+
+  if (!active) {
       setFallDone(false);
       setShowHint(true);
       setUiCaptured(false);
+      setIntroMaskVisible(false);
+      setMaskOpacity(0);
+      return;
     }
+
+    setIntroMaskVisible(true);
+    setMaskOpacity(1);
   }, [active]);
 
   useEffect(() => {
+    return () => {
+      if (maskFadeTimeoutRef.current) {
+        clearTimeout(maskFadeTimeoutRef.current);
+        maskFadeTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleFallStart = useCallback(() => {
+    setMaskOpacity(0);
+    if (maskFadeTimeoutRef.current) clearTimeout(maskFadeTimeoutRef.current);
+    maskFadeTimeoutRef.current = setTimeout(() => {
+      setIntroMaskVisible(false);
+      maskFadeTimeoutRef.current = null;
+    }, 220);
+  }, []);
+
+  const handleFallFinished = useCallback(() => {
+    setFallDone(true);
+  }, []);
+
+  useEffect(() => {
     if (fallDone) {
-      const id = setTimeout(() => setShowHint(false), 4500);
+      const id = setTimeout(() => setShowHint(false), 1000);
       return () => clearTimeout(id);
     }
   }, [fallDone]);
@@ -141,6 +208,13 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const handleReturnToHero = useCallback(() => {
     document.exitPointerLock?.();
     document.body.style.cursor = '';
+
+    if (maskFadeTimeoutRef.current) {
+      clearTimeout(maskFadeTimeoutRef.current);
+      maskFadeTimeoutRef.current = null;
+    }
+    setIntroMaskVisible(false);
+    setMaskOpacity(0);
 
     // Start a new scroll epoch (activates guard & resets progression tracking)
     beginEpochReset();
@@ -169,25 +243,57 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   ]);
 
   return (
+  <>
+    {introMaskVisible && active && (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9998,
+        background: '#060a12',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'opacity 0.18s ease-out',
+        opacity: maskOpacity,
+        pointerEvents: 'none'
+      }}>
+        {maskOpacity > 0.15 && (
+          <div style={{
+            width: 120,
+            height: 2,
+            background: 'rgba(255,255,255,0.25)',
+            borderRadius: 2,
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            <div className='city-mask-loader'/>
+          </div>
+        )}
+      </div>
+    )}
+
     <div
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: active ? 2 : 0,
         opacity: active ? 1 : 0,
-        transition: fade ? 'opacity 0.05s linear' : undefined,
+        transition: fade ? 'opacity 0.15s ease-out' : undefined,
         pointerEvents: active ? 'auto' : 'none',
         background: 'black'
       }}
     >
       <Canvas
         shadows={false}
-        // STOP rendering when video plays OR when inactive
         frameloop={isVideoPlaying ? 'never' : (active ? 'always' : (cityGPUCompiled ? 'demand' : 'always'))}
         gl={{
           powerPreference: 'high-performance',
         }}
         camera={{ fov: 52, near: 0.1, far: 3400 }}
+        onCreated={({ gl, scene }) => {
+          scene.background = new THREE.Color('#060a12');
+          console.log('🎬 City Canvas created, GPU ready');
+        }}
       >
         <color attach="background" args={['#060a12']} />
 
@@ -202,7 +308,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
         />
 
         <Suspense fallback={null}>
-          <CameraFall active={active} onFinished={() => setFallDone(true)} />
+          <CameraFall active={active} onBegin={handleFallStart} onFinished={handleFallFinished} />
           <GoBackTrigger active={active && fallDone} onTrigger={handleReturnToHero} />
           <group scale={[7.5, 7.5, 7.5]}>
             <CityModel />
@@ -476,6 +582,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

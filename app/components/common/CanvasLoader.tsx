@@ -43,10 +43,14 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   }, []);
 
   useGSAP(() => {
-    if (bootProgress === 100 && bootPhase === 'ready') {
-      gsap.to('.base-canvas', { opacity: 1, duration: 1.4, delay: 0.2 });
-    }
-  }, [bootProgress, bootPhase]);
+  if (bootProgress === 100 && bootPhase === 'ready') {
+    gsap.to('.base-canvas', { opacity: 1, duration: 1.4, delay: 0.2 });
+    gsap.to('.progress-overlay', { opacity: 0, duration: 0.5, delay: 1.5, onComplete: () => {
+      const overlay = document.querySelector('.progress-overlay');
+      if (overlay) overlay.remove();
+    }});
+  }
+}, [bootProgress, bootPhase]);
 
   useGSAP(() => {
     gsap.to(ref.current, { backgroundColor, duration: 1 });
@@ -63,11 +67,16 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   return (
     <div className="h-[100dvh] wrapper relative">
       {/* Boot loader overlay */}
-      {bootPhase !== 'ready' && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000' }}>
-          <ProgressLoader progress={bootProgress} />
-        </div>
-      )}
+
+      <div className="progress-overlay" style={{ 
+        position: 'fixed', 
+        inset: 0, 
+        zIndex: 9999, 
+        background: '#000',
+        pointerEvents: 'none'
+      }}>
+        <ProgressLoader progress={bootProgress} />
+      </div>
 
       {/* Hidden preload canvas */}
       <div style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1 }}>

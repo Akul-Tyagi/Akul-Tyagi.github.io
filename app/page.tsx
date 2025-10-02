@@ -6,7 +6,6 @@ import CanvasLoader from "./components/common/CanvasLoader";
 import ScrollWrapper from "./components/common/ScrollWrapper";
 import Hero from "./components/hero";
 import CityScene from "./components/common/CityScene";
-import DebugPanel from './components/common/DebugPanel';
 
 const Home = () => {
   const hasVideoPlayed = useVideoStore(s => s.hasVideoPlayed);
@@ -24,9 +23,7 @@ const Home = () => {
   const shouldMountCity = hasVideoPlayed || cityActive;
 
   return (
-    <>
-      <DebugPanel />
-      
+    <>  
       {/* Phase 1 scroll scene */}
       <div
         style={{
