@@ -17,12 +17,10 @@ const buzzerFont = localFont({
   src: "../public/buzzer.otf",
   variable: "--font-buzzer",
 });
-
-export const metadata: Metadata = {
-  title: "Akul Tyagi",
-  description: "A frontend developer by profession, a creative at heart.",
-  // ... rest of metadata
-};
+const monicaFont = localFont({
+  src: "../public/monica.otf",
+  variable: "--font-monica",
+});
 
 export const viewport: Viewport = {
   themeColor: "#000000",
@@ -43,7 +41,7 @@ export default function RootLayout({
         <link rel="preload" href="/videos/Falling.mp4" as="fetch" type="video/mp4" crossOrigin="anonymous" />
       </head>
       <body
-        className={`${soriaFont.variable} ${vercettiFont.variable} ${buzzerFont.variable} font-sans antialiased`}
+        className={`${soriaFont.variable} ${vercettiFont.variable} ${buzzerFont.variable} ${monicaFont.variable} font-sans antialiased`}
       >
         {children}
       </body>

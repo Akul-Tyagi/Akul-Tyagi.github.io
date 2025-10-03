@@ -70,6 +70,77 @@ const CloudContainer = () => {
         speed={0.1}/>
 
       <Cloud
+  seed={13}
+  segments={1}
+  concentrate="outside"
+  bounds={[6, 6, 6]}
+  growth={2}
+  position={[12, -25, 6]}
+  smallestVolume={2}
+  scale={2.8}
+  volume={2}
+  fade={0.15}
+  speed={0.11}
+/>
+
+<Cloud
+  seed={14}
+  segments={1}
+  concentrate="outside"
+  bounds={[7, 7, 7]}
+  growth={3}
+  position={[-11, -32, 5]}
+  smallestVolume={2}
+  scale={3.2}
+  volume={3}
+  fade={0.12}
+  speed={0.09}
+/>
+
+<Cloud
+  seed={15}
+  segments={1}
+  concentrate="outside"
+  bounds={[5, 5, 5]}
+  growth={2}
+  position={[13, -50, 2]}
+  smallestVolume={2}
+  scale={2.5}
+  volume={2}
+  fade={0.18}
+  speed={0.14}
+/>
+
+<Cloud
+  seed={16}
+  segments={1}
+  concentrate="outside"
+  bounds={[8, 8, 8]}
+  growth={4}
+  position={[-12, -54, 3.5]}
+  smallestVolume={2}
+  scale={3.8}
+  volume={3}
+  fade={0.1}
+  speed={0.08}
+/>
+
+<Cloud
+  seed={17}
+  segments={1}
+  concentrate="outside"
+  bounds={[6, 6, 6]}
+  growth={3}
+  position={[11, -42, 7]}
+  smallestVolume={2}
+  scale={3}
+  volume={3}
+  fade={0.16}
+  speed={0.1}
+/>
+
+
+      <Cloud
         seed={7}
         segments={1}
         concentrate="outside"
