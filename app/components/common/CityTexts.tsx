@@ -14,7 +14,7 @@ export interface CityTextConfig {
   maxWidth?: number;
   floatAmplitude?: number;
   floatSpeed?: number;
-  fadeDistance?: number; // optional distance-based fade
+  font?: string;
 }
 
 interface CityTextsProps {
@@ -26,7 +26,7 @@ interface CityTextsProps {
 
 const CityTexts = ({
   items,
-  commonFont = '/soria-font.ttf',
+  commonFont = '/ruigslay.otf',
   anchorX = 'center',
   anchorY = 'middle'
 }: CityTextsProps) => {
@@ -40,16 +40,6 @@ const CityTexts = ({
       const amp = cfg.floatAmplitude ?? 0.9;
       const spd = cfg.floatSpeed ?? 0.35;
       child.position.y = cfg.position[1] + Math.sin(t * spd + child.position.x * 0.12) * amp;
-
-      // Distance fade (optional)
-      if (cfg.fadeDistance) {
-        const dist = child.position.distanceTo(camera.position);
-        const fadeStart = cfg.fadeDistance * 0.4;
-        const fadeEnd = cfg.fadeDistance;
-        const alpha = THREE.MathUtils.clamp(1 - (dist - fadeStart) / (fadeEnd - fadeStart), 0, 1);
-        if (child.material) child.material.opacity = alpha;
-        child.visible = alpha > 0.02;
-      }
     });
   });
 
@@ -58,7 +48,7 @@ const CityTexts = ({
       {items.map(cfg => (
         <Text
           key={cfg.id}
-          font={commonFont}
+          font={cfg.font ?? commonFont}
           fontSize={cfg.fontSize ?? 6}
           maxWidth={cfg.maxWidth}
           color={cfg.color ?? '#d6e4ff'}

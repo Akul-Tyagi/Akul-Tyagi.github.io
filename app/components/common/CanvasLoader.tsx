@@ -7,11 +7,12 @@ import gsap from "gsap";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import VideoOverlay from "./VideoOverlay";
-import { useThemeStore, useVideoStore, useBootStore } from "@stores";
+import { useThemeStore, useVideoStore, useBootStore, useAudioStore } from "@stores";
 import UnifiedPreloader from './UnifiedPreloader';
 import ProgressLoader from "./ProgressLoader";
 import { ScrollHint } from "./ScrollHint";
 import ThemeSwitcher from "./ThemeSwitcher";
+import AudioToggle from "./AudioToggle";
 
 const CanvasLoader = (props: { children: React.ReactNode }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -20,6 +21,9 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   const isVideoPlaying = useVideoStore(state => state.isVideoPlaying);
   const bootProgress = useBootStore(s => s.progress);
   const bootPhase = useBootStore(s => s.phase);
+  const ensureAudioPlaying = useAudioStore(s => s.ensurePlaying);
+  const audioReady = useAudioStore(s => s.audioReady);
+  const mutedByUser = useAudioStore(s => s.mutedByUser);
 
   const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({
     position: "absolute",
@@ -30,6 +34,12 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
     opacity: 0,
     overflow: "hidden",
   });
+
+  useEffect(() => {
+    if (!isVideoPlaying && audioReady && !mutedByUser) {
+      ensureAudioPlaying();
+    }
+  }, [isVideoPlaying, audioReady, mutedByUser, ensureAudioPlaying]);
 
   useEffect(() => {
     if (!isMobile) {
@@ -121,6 +131,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
       {!isVideoPlaying && <ThemeSwitcher />}
       {!isVideoPlaying && <ScrollHint />}
 
+      <AudioToggle />
       <VideoOverlay />
     </div>
   );

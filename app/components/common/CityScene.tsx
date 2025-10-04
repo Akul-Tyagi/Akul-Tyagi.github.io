@@ -8,7 +8,8 @@ import CityTexts from './CityTexts';
 import IronThroneHotspot from './IronThroneHotspot';
 import SocialFloatingGlb from '../models/SocialFloatingGlb';
 import Showcase from '../models/Showcase';
-import { usePortalStore, useScrollStore, useVideoStore, useCityStore } from '@stores';
+import { usePortalStore, useScrollStore, useVideoStore, useCityStore, useAudioStore } from '@stores';
+import AudioToggle from './AudioToggle';
 
 interface CitySceneProps {
   active: boolean;
@@ -77,7 +78,7 @@ const CameraFall = ({ active, onBegin, onFinished }: { active: boolean; onBegin?
   const tmpQuatRef = useRef(new THREE.Quaternion());
 
   useEffect(() => {
-    if (!scene.fog) scene.fog = new THREE.FogExp2('#0a0d18', 0.009);
+    if (!scene.fog) scene.fog = new THREE.FogExp2('#0a0d18', 0.006);
   }, [scene]);
 
   useEffect(() => {
@@ -107,10 +108,10 @@ const CameraFall = ({ active, onBegin, onFinished }: { active: boolean; onBegin?
     progressRef.current = Math.min(1, progressRef.current + dt / FALL_DURATION);
     const progress = progressRef.current;
 
-    const easedPos = 0.5 - 0.5 * Math.cos(Math.PI * progress);
+    const easedPos = 1 - Math.pow(1 - progress, 4);
     camera.position.lerpVectors(START_POS, END_POS, easedPos);
 
-    const orientBlend = THREE.MathUtils.smootherstep(progress, 0.52, 0.98);
+    const orientBlend = THREE.MathUtils.smootherstep(progress, 0.30, 0.70);
     const q = tmpQuatRef.current;
     q.copy(START_QUAT).slerp(FINAL_QUAT, orientBlend);
     camera.quaternion.copy(q);
@@ -143,9 +144,18 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const setScrollProgress = useScrollStore(s => s.setScrollProgress);
   const setActivePortal = usePortalStore(s => s.setActivePortal);
   const beginEpochReset = useScrollStore(s => s.beginEpochReset);
+  const ensureAudioPlaying = useAudioStore(s => s.ensurePlaying);
+  const audioReady = useAudioStore(s => s.audioReady);
+  const mutedByUser = useAudioStore(s => s.mutedByUser);
 
   const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
   const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
+
+  useEffect(() => {
+    if (active && audioReady && !mutedByUser) {
+      ensureAudioPlaying();
+    }
+  }, [active, audioReady, mutedByUser, ensureAudioPlaying]);
 
   useEffect(() => {
     if (maskFadeTimeoutRef.current) {
@@ -298,12 +308,12 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
         <color attach="background" args={['#060a12']} />
 
         {/* Base fill */}
-        <ambientLight intensity={0.64} />
+        <ambientLight intensity={0.67} />
 
         {/* High moon/sun hybrid for broad city highlight */}
         <directionalLight
-          position={[320, 600, 240]}
-            intensity={4.6}
+          position={[160, 300, 120]}
+            intensity={3}
           color={'#ffffff'}
         />
 
@@ -322,10 +332,9 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
                 position: [0, 16, 73],
                 rotation: [0, 3.1, 0],
                 fontSize: 7,
-                color: '#ffeecc',
-                floatAmplitude: 0.6,
+                color: 'red',
+                floatAmplitude: 1,
                 floatSpeed: 0.5,
-                fadeDistance: 800,
               },
               {
                 id: 't2',
@@ -333,10 +342,9 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
                 position: [1.5, 16, -55],
                 rotation: [0, 0, 0],
                 fontSize: 8,
-                color: '#99c8ff',
+                color: 'red',
                 floatAmplitude: 1.0,
-                floatSpeed: 0.32,
-                fadeDistance: 900
+                floatSpeed: 0.5,
               },
               {
                 id: 't3',
@@ -344,10 +352,9 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
                 position: [40, 16, 0],
                 rotation: [0, -1.6, 0],
                 fontSize: 10,
-                color: '#ffd6a0',
-                floatAmplitude: 0.8,
-                floatSpeed: 0.42,
-                fadeDistance: 1000
+                color: 'red',
+                floatAmplitude: 1,
+                floatSpeed: 0.5,
               },
               {
                 id: 't4',
@@ -355,54 +362,53 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
                 position: [-37, 16, 0],
                 rotation: [0, 1.6, 0],
                 fontSize: 10,
-                color: '#ffd6a0',
-                floatAmplitude: 0.8,
-                floatSpeed: 0.42,
-                fadeDistance: 1000
+                color: 'red',
+                floatAmplitude: 1,
+                floatSpeed: 0.5,
               },
               {
                 id: 't5',
                 text: 'LEETCODE',
                 position:[223, 11, 28],
                 rotation:[0, 4.7, 0],
-                fontSize: 3.4,
-                color: '#ffd6a0',
+                fontSize: 4.3,
+                color: 'white',
                 floatAmplitude: 0.8,
                 floatSpeed: 0.42,
-                fadeDistance: 1000
+                font: '/cv.otf'
               },
               {
                 id: 't6',
                 text: 'LINKEDIN',
                 position:[173, 11, -28],
                 rotation:[0, 4.7, 0],
-                fontSize: 3.4,
-                color: '#ffd6a0',
+                fontSize: 4.3,
+                color: 'white',
                 floatAmplitude: 0.8,
                 floatSpeed: 0.42,
-                fadeDistance: 1000
+                font: '/cv.otf'
               },
               {
                 id: 't7',
                 text: 'GITHUB',
                 position:[73, 11, -28],
                 rotation:[0, 4.7, 0],
-                fontSize: 3.4,
-                color: '#ffd6a0',
+                fontSize: 4.3,
+                color: 'white',
                 floatAmplitude: 0.8,
                 floatSpeed: 0.42,
-                fadeDistance: 1000
+                font: '/cv.otf'
               },
               {
                 id: 't8',
                 text: 'PINTEREST',
                 position:[123, 11, 28],
                 rotation:[0, 4.7, 0],
-                fontSize: 3.4,
-                color: '#ffd6a0',
+                fontSize: 4.3,
+                color: 'white',
                 floatAmplitude: 0.8,
                 floatSpeed: 0.42,
-                fadeDistance: 1000
+                font: '/cv.otf'
               }
             ]}
           />
@@ -563,10 +569,6 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             enabled={active && fallDone && !uiCaptured}
             uiCaptured={uiCaptured}
             bounds={roamBounds.current}
-            baseStep={12}
-            walkSpeed={26}
-            sprintMultiplier={2}
-            sensitivity={0.0009}
           />
         </Suspense>
       </Canvas>
@@ -581,6 +583,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
           Click or WASD to move · Shift = sprint · Move mouse to look · Esc frees cursor
         </div>
       )}
+      <AudioToggle />
     </div>
     </>
   );

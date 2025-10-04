@@ -33,9 +33,9 @@ const CityControls = ({
   enabled,
   uiCaptured = false,
   keepY = 11,
-  baseStep = 12,
+  baseStep = 55,
   sensitivity = 0.00085,          // slightly lower due to higher responsiveness
-  walkSpeed = 26,
+  walkSpeed = 37,
   sprintMultiplier = 2,
   bounds,
   moveDamp = 11,

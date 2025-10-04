@@ -190,7 +190,7 @@ const FloatingModel = ({ item }: { item: Item }) => {
       textPosition[2]
     );
     // Completely hide text when opacity is near 0
-    textRef.current.visible = textOpacity.current > 0.1;  // Add this line
+    textRef.current.visible = textOpacity.current > 0.15;  // Add this line
   }
 });
 

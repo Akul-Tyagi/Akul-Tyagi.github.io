@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { useBootStore, useCityStore, useVideoStore } from '@stores';
+import { useBootStore, useCityStore, useVideoStore, useAudioStore } from '@stores';
 import { ASSET_MANIFEST } from '@constants';
 
 THREE.Cache.enabled = true;
@@ -39,6 +39,8 @@ const UnifiedPreloader = () => {
   const setCityReady = useCityStore(s => s.setCityReady);
   const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
   const setVideoSrc = useVideoStore(s => s.setVideoSrc);
+  const setAudio = useAudioStore(s => s.setAudio);
+  const setVolume = useAudioStore(s => s.setVolume);
 
   const startedRef = useRef(false);
   const loadedDataRef = useRef<Loaded | null>(null);
@@ -80,7 +82,7 @@ const UnifiedPreloader = () => {
           ASSET_MANIFEST.phase2Glbs.length +
           ASSET_MANIFEST.objs.length +
           ASSET_MANIFEST.images.length +
-          1;
+          2;
 
         let completed = 0;
         const updateProgress = () => {
@@ -88,6 +90,42 @@ const UnifiedPreloader = () => {
           const pct = (completed / totalAssets) * 50;
           setProgress(pct, `Loading ${completed}/${totalAssets}`);
         };
+
+        const audioPromise = new Promise<void>((resolve) => {
+          const audio = new Audio('/fdfmn.mp3');
+          audio.preload = 'auto';
+
+          const cleanup = () => {
+            audio.removeEventListener('canplaythrough', onReady);
+            audio.removeEventListener('error', onError);
+          };
+
+          const onReady = () => {
+            setVolume(0.8);
+            setAudio(audio);
+            updateProgress();
+            resolve();
+            cleanup();
+          };
+
+          const onError = (err: any) => {
+            console.warn('✗ Audio preload failed', err);
+            updateProgress();
+            resolve();
+            cleanup();
+          };
+
+          audio.addEventListener('canplaythrough', onReady, { once: true });
+          audio.addEventListener('error', onError, { once: true });
+
+          try {
+            audio.load();
+          } catch (err) {
+            onError(err);
+          }
+        });
+
+        await audioPromise;
 
         // Phase 1 GLBs with error handling
         const p1Promises = ASSET_MANIFEST.phase1Glbs.map((url: string) =>

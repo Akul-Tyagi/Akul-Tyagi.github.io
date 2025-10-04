@@ -1,7 +1,7 @@
 'use client';
 
-import { Text } from "@react-three/drei";
-
+import { Text, Html } from "@react-three/drei";
+import { useScrollStore, useVideoStore, useCityStore } from "@stores";
 import { useProgress } from "@react-three/drei";
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
@@ -11,9 +11,7 @@ import HorseModel from "../models/HorseModel";
 import ModelsRail from "../models/ModelsRail";
 import TrainModel from "../models/TrainModel";
 import { useFrame } from "@react-three/fiber";
-import { shadow } from "three/tsl";
-import { scale } from "motion-dom";
-import { outline } from "three/examples/jsm/tsl/display/OutlineNode.js";
+import HeroCtas from "./HeroCtas";
 
 interface RotatingStarProps {
   position: [number, number, number];
@@ -65,7 +63,43 @@ const RotatingStar = ({
 
 const Hero = () => {
   const titleRef = useRef<THREE.Mesh>(null);
+  const aboutBtnRef = useRef<HTMLButtonElement>(null);
+  const projectsBtnRef = useRef<HTMLButtonElement>(null);
   const { progress } = useProgress();
+  const setVideoPlaying = useVideoStore(s => s.setVideoPlaying);
+  const setVideoPlayed = useVideoStore(s => s.setVideoPlayed);
+  const videoSrc = useVideoStore(s => s.videoSrc);
+  const cityReady = useCityStore(s => s.cityReady);
+  const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
+
+  const handleAboutClick = () => {
+    gsap.timeline()
+      .to(".scroll-hint", { opacity: 1, duration: 0.1 })
+      .fromTo(
+        ".scroll-hint",
+        { scale: 1 },
+        { scale: 1.3, duration: 0.18, yoyo: true, repeat: 3, ease: "power.inOut" }
+      )
+      .fromTo(
+        ".scroll-hint span",
+        { letterSpacing: "0.15em" },
+        { letterSpacing: "0.35em", duration: 0.18, yoyo: true, repeat: 3, ease: "power.inOut" },
+        "<"
+      );
+  };
+
+  const handleProjectsClick = () => {
+    if (!cityReady || !cityGPUCompiled || !videoSrc) {
+      gsap.fromTo(
+        projectsBtnRef.current,
+        { scale: 1 },
+        { scale: 1.08, duration: 0.2, yoyo: true, repeat: 1, ease: "power1.inOut" }
+      );
+      return;
+    }
+    setVideoPlayed(false);
+    setVideoPlaying(true);
+  };
 
   useEffect(() => {
     if (progress === 100 && titleRef.current) {
@@ -116,6 +150,7 @@ const Hero = () => {
       <Text position={[0,7.1, -10]} {...fontProps} >Plot Twist</Text>
       <Text position={[0, 6.1, -10]} {...fontProps} >You Found The Perfect Developer</Text>
       <Text position={[0, -5.5, -10]} {...fontPropss} >&quot;I Hope You Get What You Want Before You Stop Wanting It&quot;</Text>
+      <HeroCtas onAbout={handleAboutClick} onProjects={handleProjectsClick} />
       <RotatingStar position={[-12.2, -2, -10]} scale={2.5} rotationSpeed={0.03} />
       <RotatingStar position={[0, -4, -10]} scale={2} rotationSpeed={0.01} />
       <RotatingStar position={[10, 3, -10]} scale={2.5} rotationSpeed={0.03} />

@@ -37,7 +37,7 @@ const CloudContainer = () => {
         concentrate="outside"
         bounds={[10, 20, 15]}
         growth={4}
-        position={[-10, -10, 4]}
+        position={[-13, -10, 4]}
         smallestVolume={2}
         scale={2}
         speed={0.2}
@@ -62,9 +62,9 @@ const CloudContainer = () => {
         concentrate="outside"
         bounds={[5, 5, 5]}
         growth={2}
-        position={[0, -20, 20]}
+        position={[0, -20, 18]}
         smallestVolume={2}
-        scale={4}
+        scale={3}
         volume={3}
         fade={0.1}
         speed={0.1}/>
@@ -89,7 +89,7 @@ const CloudContainer = () => {
   concentrate="outside"
   bounds={[7, 7, 7]}
   growth={3}
-  position={[-11, -32, 5]}
+  position={[-15, -33, 5]}
   smallestVolume={2}
   scale={3.2}
   volume={3}
@@ -117,9 +117,22 @@ const CloudContainer = () => {
   concentrate="outside"
   bounds={[8, 8, 8]}
   growth={4}
-  position={[-12, -54, 3.5]}
+  position={[-15, -60, 3.5]}
   smallestVolume={2}
   scale={3.8}
+  volume={3}
+  fade={0.1}
+  speed={0.08}
+/>
+<Cloud
+  seed={18}
+  segments={1}
+  concentrate="outside"
+  bounds={[8, 8, 8]}
+  growth={4}
+  position={[30, -75, -3]}
+  smallestVolume={2}
+  scale={3}
   volume={3}
   fade={0.1}
   speed={0.08}
@@ -131,9 +144,9 @@ const CloudContainer = () => {
   concentrate="outside"
   bounds={[6, 6, 6]}
   growth={3}
-  position={[11, -42, 7]}
+  position={[15, -37, 5]}
   smallestVolume={2}
-  scale={3}
+  scale={2}
   volume={3}
   fade={0.16}
   speed={0.1}
