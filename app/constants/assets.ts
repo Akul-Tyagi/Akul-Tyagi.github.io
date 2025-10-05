@@ -25,6 +25,14 @@ export const HORSE_MODELS = [
   '/models/horse/model_4.glb',
 ];
 
+const HORSE_TEXTURES = [
+  '/models/horse/Horse_low0_albedo.png',
+  '/models/horse/Horse_low0_normal.png',
+  '/models/horse/Horse_low0_roughness.png',
+  '/models/horse/Horse_low0_ao.png',
+  '/models/horse/Horse_low0_metallic.png',
+];
+
 export const OBJ_URLS = [
   '/models/IronThrone/model_0.obj',
   '/models/IronThrone/model_1.obj',
@@ -55,6 +63,7 @@ const SHOWCASE_IMG = [
 export const IMAGE_URLS = [
   ...THRONE_TEX,
   ...SHOWCASE_IMG,
+  ...HORSE_TEXTURES,
 ];
 
 export const ASSET_MANIFEST = {
