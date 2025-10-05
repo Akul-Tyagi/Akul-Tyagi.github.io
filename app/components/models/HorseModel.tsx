@@ -52,15 +52,15 @@ const HorseModel = (props: Partial<THREE.Object3D>) => {
   const horses = [horse0, horse1, horse2, horse3, horse4];
   
   // Load textures from the horse folder (adjust these names based on your actual texture files)
-  const textures = useTexture({
-    map: '/models/horse/Horse_low0_albedo.png', // Replace with your actual texture file names
-    normalMap: '/models/horse/Horse_low0_normal.png', // Optional - if you have normal maps
-    roughnessMap: '/models/horse/Horse_low0_roughness.png', // Optional - if you have roughness maps
-    aoMap: '/models/horse/Horse_low0_ao.png',
-    metalnessMap: '/models/horse/Horse_low0_metallic.png',
+  // const textures = useTexture({
+  //   map: '/models/horse/Horse_low0_albedo.png', // Replace with your actual texture file names
+  //   normalMap: '/models/horse/Horse_low0_normal.png', // Optional - if you have normal maps
+  //   roughnessMap: '/models/horse/Horse_low0_roughness.png', // Optional - if you have roughness maps
+  //   aoMap: '/models/horse/Horse_low0_ao.png',
+  //   metalnessMap: '/models/horse/Horse_low0_metallic.png',
 
-    // Add more textures as needed based on what you have in the folder
-  });
+  //   // Add more textures as needed based on what you have in the folder
+  // });
 
   const data = useScroll();
   
@@ -147,11 +147,6 @@ useFrame((_, delta) => {
   // Single shared material (avoid creating N materials during render)
   const horseMat = useMemo(() => {
     const m = new THREE.MeshPhysicalMaterial({
-      map: textures.map,
-      normalMap: textures.normalMap,
-      roughnessMap: textures.roughnessMap,
-      aoMap: textures.aoMap,
-      metalnessMap: textures.metalnessMap,
       roughness: 0.3,
       metalness: 0.1,
       clearcoat: 0.7,
@@ -164,7 +159,7 @@ useFrame((_, delta) => {
       emissiveIntensity: 0.15,
     });
     return m;
-  }, [textures]);
+  }, []);
 
   useEffect(() => () => horseMat.dispose(), [horseMat]);
   
