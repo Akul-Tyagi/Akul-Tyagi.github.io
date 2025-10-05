@@ -29,7 +29,7 @@ const HORSE_TEXTURES = [
   '/models/horse/Horse_low0_albedo.png',
   '/models/horse/Horse_low0_normal.png',
   '/models/horse/Horse_low0_roughness.png',
-  '/models/horse/Horse_low0_ao.png',
+  '/models/horse/Horse_low0_AO.png',
   '/models/horse/Horse_low0_metallic.png',
 ];
 

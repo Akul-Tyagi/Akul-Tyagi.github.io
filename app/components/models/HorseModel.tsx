@@ -56,7 +56,7 @@ const HorseModel = (props: Partial<THREE.Object3D>) => {
     map: '/models/horse/Horse_low0_albedo.png', // Replace with your actual texture file names
     normalMap: '/models/horse/Horse_low0_normal.png', // Optional - if you have normal maps
     roughnessMap: '/models/horse/Horse_low0_roughness.png', // Optional - if you have roughness maps
-    aoMap: '/models/horse/Horse_low0_ao.png',
+    aoMap: '/models/horse/Horse_low0_AO.png',
     metalnessMap: '/models/horse/Horse_low0_metallic.png',
 
     // Add more textures as needed based on what you have in the folder
