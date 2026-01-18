@@ -41,8 +41,6 @@ const VideoOverlay = () => {
     if (isVideoPlaying) return;
     if (guard) return;
     if (maxProgress < MIN_INTENT_PROGRESS) return;
-    if (!cityReady) return;
-    if (!cityGPUCompiled) return;
     if (!videoSrc) return;
 
     const prev = prevProgressRef.current;
@@ -66,8 +64,6 @@ const VideoOverlay = () => {
     maxProgress,
     hasVideoPlayed,
     isVideoPlaying,
-    cityReady,
-    cityGPUCompiled,
     videoSrc,
     setVideoPlaying
   ]);

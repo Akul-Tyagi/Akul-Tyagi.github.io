@@ -15,8 +15,8 @@ const Home = () => {
 
   // City becomes active after video completely finished
   const cityActive = useMemo(
-    () => hasVideoPlayed && !isVideoPlaying && cityReady && cityGPUCompiled,
-    [hasVideoPlayed, isVideoPlaying, cityReady, cityGPUCompiled]
+    () => hasVideoPlayed && !isVideoPlaying,
+    [hasVideoPlayed, isVideoPlaying]
   );
 
   // Only mount City Scene AFTER video has played (not during)

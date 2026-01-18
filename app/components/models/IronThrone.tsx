@@ -7,13 +7,13 @@ import { useMemo } from 'react';
 import type { JSX } from 'react';
 
 type IronThroneProps = JSX.IntrinsicElements['group'] & {
-  texture?: 'UV4' | 'UV5' | null; // choose which sword texture to use or null for plain metal
+  texture?: 'UV4' | 'UV5'; // choose which sword texture to use or null for plain metal
   metalness?: number;
   roughness?: number;
 };
 
 const IronThrone = ({
-  texture = 'UV4',
+  texture = 'UV5',
   metalness = 0.7,
   roughness = 0.8,
   ...rest
@@ -23,32 +23,33 @@ const IronThrone = ({
     '/models/IronThrone/model_1.obj',
   ]) as THREE.Group[];
 
-  const tex4 = useTexture('/models/IronThrone/sword_UV4.png');
-  const tex5 = useTexture('/models/IronThrone/sword_UV5.png');
+  const textureUrl =
+    texture === 'UV4'
+      ? '/models/IronThrone/sword_UV4.png'
+      : '/models/IronThrone/sword_UV5.png';
+
+  const tex = useTexture(textureUrl);
 
   // Normalize texture settings
   useMemo(() => {
-    [tex4, tex5].forEach((t) => {
-      if (!t) return;
-      if ('colorSpace' in t) (t as any).colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = 8;
-      t.generateMipmaps = true;
-      t.minFilter = THREE.LinearMipmapLinearFilter;
-      t.magFilter = THREE.LinearFilter;
-      t.needsUpdate = true;
-    });
-  }, [tex4, tex5]);
+    if (!tex) return;
+    if ('colorSpace' in tex) (tex as any).colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    tex.generateMipmaps = true;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.needsUpdate = true;
+  }, [tex]);
 
   const mat = useMemo(() => {
-    const map = texture === 'UV4' ? tex4 : texture === 'UV5' ? tex5 : undefined;
     return new THREE.MeshStandardMaterial({
-      map,
-      color: map ? new THREE.Color('#ffffff') : new THREE.Color('#c7c7c7'),
+      map: tex,
+      color: new THREE.Color('#ffffff'),
       metalness,
       roughness,
       envMapIntensity: 0.7,
     });
-  }, [texture, tex4, tex5, metalness, roughness]);
+  }, [tex, metalness, roughness]);
 
   const group = useMemo(() => {
     const g = new THREE.Group();

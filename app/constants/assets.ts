@@ -1,6 +1,6 @@
 export const VIDEO_PATH = '/videos/Falling.mp4';
 
-export const HERO_GLBS = [
+export const HERO_GLBS_PHASE1 = [
   '/models/onepiece.glb',
   '/models/setup.glb',
   '/models/sopranos.glb',
@@ -12,9 +12,17 @@ export const HERO_GLBS = [
   '/models/ps5.glb',
   '/models/xm5.glb',
   '/models/train.glb',
+];
+
+export const HERO_GLBS_PHASE2 = [
   '/models/monitor.glb',
   '/models/samsung.glb',
   '/models/tv.glb',
+];
+
+export const HERO_GLBS = [
+  ...HERO_GLBS_PHASE1,
+  ...HERO_GLBS_PHASE2,
 ];
 
 export const HORSE_MODELS = [
@@ -47,7 +55,6 @@ export const CITY_GLBS = [
 ];
 
 const THRONE_TEX = [
-  '/models/IronThrone/sword_UV4.png',
   '/models/IronThrone/sword_UV5.png',
 ];
 
@@ -66,10 +73,22 @@ export const IMAGE_URLS = [
   ...HORSE_TEXTURES,
 ];
 
+// NEW: split images for phase loading
+export const PHASE1_IMAGES = [
+  ...HORSE_TEXTURES,
+];
+
+export const PHASE2_IMAGES = [
+  ...THRONE_TEX,
+  ...SHOWCASE_IMG,
+];
+
 export const ASSET_MANIFEST = {
   video: VIDEO_PATH,
-  phase1Glbs: [...HERO_GLBS, ...HORSE_MODELS],
-  phase2Glbs: [CITY_GLTF_PATH, ...CITY_GLBS],
-  objs: OBJ_URLS,
-  images: IMAGE_URLS,
+  phase1Glbs: [...HERO_GLBS_PHASE1, ...HORSE_MODELS],
+  phase2Glbs: [CITY_GLTF_PATH, ...CITY_GLBS, ...HERO_GLBS_PHASE2],
+  phase1Images: [...PHASE1_IMAGES],
+  phase2Images: [...PHASE2_IMAGES],
+  phase1Objs: [],
+  phase2Objs: [...OBJ_URLS],
 };

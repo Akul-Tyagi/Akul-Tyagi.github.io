@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { HERO_GLBS_PHASE1, HERO_GLBS_PHASE2, VIDEO_PATH } from '@/app/constants/assets';
+import { preloadCityModel } from '@/app/components/models/CityModel';
 import { useBootStore, useCityStore, useVideoStore, useAudioStore } from '@stores';
 import { ASSET_MANIFEST } from '@constants';
 
@@ -13,12 +15,20 @@ const gltfLoader = new GLTFLoader();
 const objLoader = new OBJLoader();
 const texLoader = new THREE.TextureLoader();
 
+// helper to schedule idle work (fallback to timeout)
+const scheduleIdle = (fn: () => void, timeout = 1500) => {
+  if (typeof window === 'undefined') return;
+  // @ts-expect-error requestIdleCallback may not exist on window in all browsers
+  if (window.requestIdleCallback) {
+    // @ts-expect-error requestIdleCallback may not exist on window in all browsers
+    return window.requestIdleCallback(fn, { timeout });
+  }
+  return window.setTimeout(fn, timeout);
+};
+
 type Loaded = {
   phase1Gltfs: THREE.Group[];
-  phase2Gltfs: THREE.Group[];
-  objs: THREE.Group[];
   textures: THREE.Texture[];
-  city: THREE.Group | null;
   videoReady: boolean;
 };
 
@@ -32,6 +42,7 @@ const LightRig = () => (
 );
 
 const UnifiedPreloader = () => {
+  const hasVideoPlayed = useVideoStore(s => s.hasVideoPlayed);
   const { gl, scene } = useThree();
   const setBootPhase = useBootStore(s => s.setPhase);
   const setProgress = useBootStore(s => s.setProgress);
@@ -70,18 +81,13 @@ const UnifiedPreloader = () => {
 
         const loaded: Loaded = {
           phase1Gltfs: [],
-          phase2Gltfs: [],
-          objs: [],
           textures: [],
-          city: null,
           videoReady: false,
         };
 
         const totalAssets =
           ASSET_MANIFEST.phase1Glbs.length +
-          ASSET_MANIFEST.phase2Glbs.length +
-          ASSET_MANIFEST.objs.length +
-          ASSET_MANIFEST.images.length +
+          ASSET_MANIFEST.phase1Images.length +
           2;
 
         let completed = 0;
@@ -141,41 +147,8 @@ const UnifiedPreloader = () => {
             })
         );
 
-        // Phase 2 GLBs with error handling
-        const p2Promises = ASSET_MANIFEST.phase2Glbs.map((url: string) =>
-          gltfLoader.loadAsync(url)
-            .then(gltf => {
-              if (url.includes('city/scene.gltf')) {
-                loaded.city = gltf.scene;
-                console.log(`✓ Loaded city: ${url}`);
-              } else {
-                loaded.phase2Gltfs.push(gltf.scene);
-                console.log(`✓ Loaded phase2: ${url}`);
-              }
-              updateProgress();
-            })
-            .catch(err => {
-              console.error(`✗ Failed phase2: ${url}`, err);
-              updateProgress();
-            })
-        );
-
-        // OBJs with error handling
-        const objPromises = ASSET_MANIFEST.objs.map((url: string) =>
-          objLoader.loadAsync(url)
-            .then(obj => {
-              loaded.objs.push(obj);
-              console.log(`✓ Loaded OBJ: ${url}`);
-              updateProgress();
-            })
-            .catch(err => {
-              console.error(`✗ Failed OBJ: ${url}`, err);
-              updateProgress();
-            })
-        );
-
         // Textures with error handling
-        const texPromises = ASSET_MANIFEST.images.map((url: string) =>
+        const texPromises = ASSET_MANIFEST.phase1Images.map((url: string) =>
           texLoader.loadAsync(url)
             .then(tex => {
               tex.colorSpace = THREE.SRGBColorSpace;
@@ -210,19 +183,15 @@ const UnifiedPreloader = () => {
           vid.load();
         });
 
-        await Promise.all([...p1Promises, ...p2Promises, ...objPromises, ...texPromises, videoPromise]);
+        await Promise.all([...p1Promises, ...texPromises, videoPromise]);
 
         console.log('📦 All assets loaded:', {
           phase1: loaded.phase1Gltfs.length,
-          phase2: loaded.phase2Gltfs.length,
-          city: !!loaded.city,
-          objs: loaded.objs.length,
           textures: loaded.textures.length,
           video: loaded.videoReady
         });
 
         setProgress(50, 'Assets loaded');
-        setCityReady(true);
 
         // GPU compilation
         setBootPhase('compiling');
@@ -235,39 +204,8 @@ const UnifiedPreloader = () => {
         // Phase 1 models
         loaded.phase1Gltfs.forEach(g => {
           const c = g.clone();
-          c.traverse(n => {
-            if ((n as THREE.Mesh).isMesh) {
-              const m = n as THREE.Mesh;
-              m.castShadow = true;
-              m.receiveShadow = true;
-            }
-          });
           cloneGroup.add(c);
         });
-
-        // Phase 2 models
-        loaded.phase2Gltfs.forEach(g => cloneGroup.add(g.clone()));
-
-        // City
-        if (loaded.city) {
-          const cityClone = loaded.city.clone();
-          cityClone.scale.set(7.5, 7.5, 7.5);
-          cityClone.traverse(n => {
-            if ((n as THREE.Mesh).isMesh) {
-              const m = n as THREE.Mesh;
-              if (m.material) {
-                const mat = m.material as THREE.MeshStandardMaterial;
-                if (mat.emissive && mat.emissiveIntensity > 2) {
-                  mat.emissiveIntensity = Math.min(2, mat.emissiveIntensity);
-                }
-              }
-            }
-          });
-          cloneGroup.add(cityClone);
-        }
-
-        // OBJ throne
-        loaded.objs.forEach(o => cloneGroup.add(o.clone()));
 
         scene.add(cloneGroup);
 
@@ -277,13 +215,10 @@ const UnifiedPreloader = () => {
         setProgress(60, 'Compiling shaders');
       } catch (err) {
         console.error('Preload critical error:', err);
-        // Still mark ready to allow site to function
-        setCityReady(true);
-        setCityGPUCompiled(true);
         markReady();
       }
     })();
-  }, [gl, scene, setBootPhase, setProgress, markReady, setCityReady, setCityGPUCompiled, setVideoSrc]);
+  }, [gl, scene, setBootPhase, setProgress, markReady, setVideoSrc, setAudio, setVolume]);
 
   useFrame(() => {
     if (!loadedDataRef.current) return;
@@ -291,7 +226,6 @@ const UnifiedPreloader = () => {
     const pass = compilePasses.current[compilePhaseRef.current];
     if (!pass) {
       setProgress(100, 'Ready');
-      setCityGPUCompiled(true);
       markReady();
       loadedDataRef.current = null;
       return;

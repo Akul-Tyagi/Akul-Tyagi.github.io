@@ -89,7 +89,7 @@ const Hero = () => {
   };
 
   const handleProjectsClick = () => {
-    if (!cityReady || !cityGPUCompiled || !videoSrc) {
+    if (!videoSrc) {
       gsap.fromTo(
         projectsBtnRef.current,
         { scale: 1 },

@@ -2,6 +2,7 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { useProgress } from '@react-three/drei';
 import CityModel from '../models/CityModel';
 import CityControls from './CityControls';
 import CityTexts from './CityTexts';
@@ -130,6 +131,42 @@ const CameraFall = ({ active, onBegin, onFinished }: { active: boolean; onBegin?
   return null;
 };
 
+const CityGpuCompiler = ({ enabled }: { enabled: boolean }) => {
+  const { gl, scene } = useThree();
+  const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
+  const phaseRef = useRef(0);
+  const camRef = useRef(new THREE.PerspectiveCamera(52, 1, 0.1, 4000));
+  const passes = useRef([
+    { p: [0, 11, 64], l: [0, 6, 0] },
+    { p: [120, 11, 120], l: [0, 11, 0] },
+    { p: [-200, 9, 0], l: [-180, 9, 0] },
+  ]);
+
+  useEffect(() => {
+    if (enabled) phaseRef.current = 0;
+  }, [enabled]);
+
+  useFrame(() => {
+    if (!enabled) return;
+
+    const pass = passes.current[phaseRef.current];
+    if (!pass) {
+      setCityGPUCompiled(true);
+      return;
+    }
+
+    camRef.current.position.set(...(pass.p as [number, number, number]));
+    camRef.current.lookAt(new THREE.Vector3(...(pass.l as [number, number, number])));
+
+    gl.compile(scene, camRef.current);
+    gl.render(scene, camRef.current);
+
+    phaseRef.current++;
+  });
+
+  return null;
+};
+
 const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const [fallDone, setFallDone] = useState(false);
   const [showHint, setShowHint] = useState(true);
@@ -147,9 +184,24 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const ensureAudioPlaying = useAudioStore(s => s.ensurePlaying);
   const audioReady = useAudioStore(s => s.audioReady);
   const mutedByUser = useAudioStore(s => s.mutedByUser);
-
+  const { progress } = useProgress();
+  const cityReady = useCityStore(s => s.cityReady);
+  const setCityReady = useCityStore(s => s.setCityReady);
   const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
   const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
+
+  const canStart = active && cityReady && cityGPUCompiled;
+
+  const cityLoadText =
+    progress < 100
+      ? `Loading ${Math.round(progress)}%`
+      : (cityGPUCompiled ? '' : 'Compiling...');
+
+  useEffect(() => {
+    if (active && progress >= 100) {
+      setCityReady(true);
+    }
+  }, [active, progress, setCityReady]);
 
   useEffect(() => {
     if (active && audioReady && !mutedByUser) {
@@ -267,18 +319,30 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
         opacity: maskOpacity,
         pointerEvents: 'none'
       }}>
-        {maskOpacity > 0.15 && (
-          <div style={{
-            width: 120,
-            height: 2,
-            background: 'rgba(255,255,255,0.25)',
-            borderRadius: 2,
-            overflow: 'hidden',
-            position: 'relative'
-          }}>
-            <div className='city-mask-loader'/>
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          {maskOpacity > 0.15 && (
+            <div style={{
+              width: 120,
+              height: 2,
+              background: 'rgba(255,255,255,0.25)',
+              borderRadius: 2,
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <div className='city-mask-loader'/>
+            </div>
+          )}
+          {!!cityLoadText && (
+            <div style={{
+              fontFamily: 'monospace',
+              fontSize: 12,
+              color: 'rgba(255,255,255,0.75)',
+              letterSpacing: 0.5
+            }}>
+              {cityLoadText}
+            </div>
+          )}
+        </div>
       </div>
     )}
 
@@ -295,7 +359,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
     >
       <Canvas
         shadows={false}
-        frameloop={isVideoPlaying ? 'never' : (active ? 'always' : (cityGPUCompiled ? 'demand' : 'always'))}
+        frameloop={isVideoPlaying ? 'never' : 'always'}
         gl={{
           powerPreference: 'high-performance',
         }}
@@ -318,6 +382,8 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
         />
 
         <Suspense fallback={null}>
+          <CityGpuCompiler enabled={active && cityReady && !cityGPUCompiled} />
+
           <CameraFall active={active} onBegin={handleFallStart} onFinished={handleFallFinished} />
           <GoBackTrigger active={active && fallDone} onTrigger={handleReturnToHero} />
           <group scale={[7.5, 7.5, 7.5]}>
@@ -566,7 +632,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
           </group>
 
           <CityControls
-            enabled={active && fallDone && !uiCaptured}
+            enabled={canStart && fallDone && !uiCaptured}
             uiCaptured={uiCaptured}
             bounds={roamBounds.current}
           />

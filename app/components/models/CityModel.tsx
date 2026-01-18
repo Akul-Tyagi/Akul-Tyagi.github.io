@@ -69,6 +69,6 @@ const CityModel = ({
 };
 
 // Preload OUTSIDE component to ensure it's cached
-useGLTF.preload(CITY_MODEL_PATH);
+export const preloadCityModel = () => useGLTF.preload(CITY_MODEL_PATH);
 
 export default CityModel;
