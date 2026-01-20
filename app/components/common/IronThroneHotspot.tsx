@@ -157,7 +157,6 @@ const IronThroneHotspot = ({
               url="/icons/pdf.svg"
               transparent
               toneMapped={false}
-              alt=""
             />
           </Billboard>
         </Float>
