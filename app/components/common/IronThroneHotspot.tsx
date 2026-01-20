@@ -142,7 +142,7 @@ const IronThroneHotspot = ({
         }}
       >
         {/* The actual throne */}
-        <IronThrone texture={throneTexture} />
+        <IronThrone texture={throneTexture ?? 'UV5'} />
 
         {/* Easier click area */}
         <mesh position={[0, 2.6, 0]} geometry={colliderGeo}>
@@ -157,6 +157,7 @@ const IronThroneHotspot = ({
               url="/icons/pdf.svg"
               transparent
               toneMapped={false}
+              alt=""
             />
           </Billboard>
         </Float>

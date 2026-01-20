@@ -4,7 +4,7 @@ import { useGSAP } from "@gsap/react";
 import { AdaptiveDpr, Preload, ScrollControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import gsap from "gsap";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useMemo } from "react";
 import { isMobile } from "react-device-detect";
 import VideoOverlay from "./VideoOverlay";
 import { useThemeStore, useVideoStore, useBootStore, useAudioStore } from "@stores";
@@ -25,32 +25,30 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   const audioReady = useAudioStore(s => s.audioReady);
   const mutedByUser = useAudioStore(s => s.mutedByUser);
 
-  const [canvasStyle, setCanvasStyle] = useState<React.CSSProperties>({
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    opacity: 0,
-    overflow: "hidden",
-  });
+  const canvasStyle = useMemo<React.CSSProperties>(() => {
+    const base: React.CSSProperties = {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      opacity: 0,
+      overflow: "hidden",
+    };
+    if (isMobile) return base;
+    return {
+      ...base,
+      inset: "1rem",
+      width: "calc(100% - 2rem)",
+      height: "calc(100% - 2rem)",
+    };
+  }, [isMobile]);
 
   useEffect(() => {
     if (!isVideoPlaying && audioReady && !mutedByUser) {
       ensureAudioPlaying();
     }
   }, [isVideoPlaying, audioReady, mutedByUser, ensureAudioPlaying]);
-
-  useEffect(() => {
-    if (!isMobile) {
-      const borderStyle = {
-        inset: '1rem',
-        width: 'calc(100% - 2rem)',
-        height: 'calc(100% - 2rem)',
-      };
-      setCanvasStyle((prev) => ({ ...prev, ...borderStyle }));
-    }
-  }, []);
 
   useGSAP(() => {
   if (bootProgress === 100 && bootPhase === 'ready') {
@@ -62,20 +60,22 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
   }
 }, [bootProgress, bootPhase]);
 
-  useGSAP(() => {
-    gsap.to(ref.current, { backgroundColor, duration: 1 });
-    gsap.to(canvasRef.current, { backgroundColor, duration: 1, ...noiseOverlayStyle });
-  }, [backgroundColor]);
-
-  const noiseOverlayStyle = {
+const noiseOverlayStyle = {
     backgroundBlendMode: "soft-light" as const,
     backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E\")",
     backgroundRepeat: "repeat" as const,
     backgroundSize: "100px",
   };
 
+  useGSAP(() => {
+    gsap.to(ref.current, { backgroundColor, duration: 1 });
+    gsap.to(canvasRef.current, { backgroundColor, duration: 1, ...noiseOverlayStyle });
+  }, [backgroundColor]);
+
+  
+
   return (
-    <div className="h-[100dvh] wrapper relative">
+    <div className="wrapper relative viewport-fill">
       {/* Boot loader overlay */}
 
       <div className="progress-overlay" style={{ 
@@ -97,7 +97,7 @@ const CanvasLoader = (props: { children: React.ReactNode }) => {
 
       {/* Main scene canvas - STOP frameloop when video plays */}
       <div
-        className="h-[100dvh] relative"
+        className="relative viewport-fill"
         ref={ref}
         style={{
           opacity: 1,

@@ -15,17 +15,6 @@ const gltfLoader = new GLTFLoader();
 const objLoader = new OBJLoader();
 const texLoader = new THREE.TextureLoader();
 
-// helper to schedule idle work (fallback to timeout)
-const scheduleIdle = (fn: () => void, timeout = 1500) => {
-  if (typeof window === 'undefined') return;
-  // @ts-expect-error requestIdleCallback may not exist on window in all browsers
-  if (window.requestIdleCallback) {
-    // @ts-expect-error requestIdleCallback may not exist on window in all browsers
-    return window.requestIdleCallback(fn, { timeout });
-  }
-  return window.setTimeout(fn, timeout);
-};
-
 type Loaded = {
   phase1Gltfs: THREE.Group[];
   textures: THREE.Texture[];

@@ -1,6 +1,6 @@
 'use client';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Suspense, useRef, useEffect, useState, useCallback } from 'react';
+import { Suspense, useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import { useProgress } from '@react-three/drei';
 import CityModel from '../models/CityModel';
@@ -11,6 +11,8 @@ import SocialFloatingGlb from '../models/SocialFloatingGlb';
 import Showcase from '../models/Showcase';
 import { usePortalStore, useScrollStore, useVideoStore, useCityStore, useAudioStore } from '@stores';
 import AudioToggle from './AudioToggle';
+import { isMobile } from 'react-device-detect';
+import CityMobileControls from './CityMobileControls';
 
 interface CitySceneProps {
   active: boolean;
@@ -191,6 +193,8 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const setCityGPUCompiled = useCityStore(s => s.setCityGPUCompiled);
 
   const canStart = active && cityReady && cityGPUCompiled;
+  const controlsEnabled = canStart && fallDone && !uiCaptured && !isMobile;
+  const mobileControlsEnabled = canStart && fallDone && !uiCaptured && isMobile;
 
   const cityLoadText =
     progress < 100
@@ -260,12 +264,12 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
   const isVideoPlaying = useVideoStore(s => s.isVideoPlaying);
 
   // Adjust roam limits (shrink a bit inside model extents)
-  const roamBounds = useRef({
+  const roamBounds = useMemo(() => ({
     minX: -450,
     maxX: 450,
     minZ: -300,
     maxZ: 300
-  });
+  }), []);
 
   const handleReturnToHero = useCallback(() => {
     document.exitPointerLock?.();
@@ -363,6 +367,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
         gl={{
           powerPreference: 'high-performance',
         }}
+        dpr={[1, isMobile ? 1 : 1.5]}
         camera={{ fov: 52, near: 0.1, far: 3400 }}
         onCreated={({ gl, scene }) => {
           scene.background = new THREE.Color('#060a12');
@@ -631,15 +636,29 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             />
           </group>
 
-          <CityControls
-            enabled={canStart && fallDone && !uiCaptured}
+          {!mobileControlsEnabled &&(
+            <CityControls
+            enabled={controlsEnabled}
             uiCaptured={uiCaptured}
-            bounds={roamBounds.current}
+            bounds={roamBounds}
           />
+          )}
+          
+          {mobileControlsEnabled && (
+            <CityMobileControls
+              enabled={mobileControlsEnabled}
+              bounds={roamBounds}
+            />
+          )}
+
+        
         </Suspense>
+        
       </Canvas>
 
-      {active && fallDone && showHint && (
+      
+
+      {active && fallDone && showHint && !isMobile && (
         <div style={{
           position:'absolute', top:12, left:'50%', transform:'translateX(-50%)',
           color:'#ccc', fontFamily:'monospace', fontSize:12, letterSpacing:1,
@@ -647,6 +666,17 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
           pointerEvents:'none'
         }}>
           Click or WASD to move · Shift = sprint · Move mouse to look · Esc frees cursor
+        </div>
+      )}
+
+      {active && fallDone && showHint && isMobile && (
+        <div style={{
+          position:'absolute', top:12, left:'50%', transform:'translateX(-50%)',
+          color:'#ccc', fontFamily:'monospace', fontSize:12, letterSpacing:1,
+          background:'rgba(0,0,0,0.38)', padding:'6px 12px', borderRadius:6,
+          pointerEvents:'none'
+        }}>
+          Drag to look · Tap to move · Double tap to sprint
         </div>
       )}
       <AudioToggle />

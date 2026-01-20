@@ -101,6 +101,7 @@ const VideoOverlay = () => {
 
   return (
     <div
+      className="video-overlay"
       style={{
         position: 'fixed',
         inset: 0,

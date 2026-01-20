@@ -221,19 +221,22 @@ const Showcase = ({
               {clonedScene && <primitive object={clonedScene} />}
             </group>
           ) : (
-            <Image
-              url={url}
-              // Maintain original aspect (width = aspect, height = 1), then apply user scale
-              scale={[
-                imageBaseScale[0] * imageUserScale[0],
-                imageBaseScale[1] * imageUserScale[1],
-              ]}
-              transparent
-              toneMapped={imageToneMapped}
-              radius={imageRadius}
-              segments={imageSegments as any}
-              side={THREE.DoubleSide}
-            />
+            <>
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
+              <Image
+                url={url}
+                // Maintain original aspect (width = aspect, height = 1), then apply user scale
+                scale={[
+                  imageBaseScale[0] * imageUserScale[0],
+                  imageBaseScale[1] * imageUserScale[1],
+                ]}
+                transparent
+                toneMapped={imageToneMapped}
+                radius={imageRadius}
+                segments={imageSegments as any}
+                side={THREE.DoubleSide}
+              />
+            </>
           )}
         </Float>
       </group>

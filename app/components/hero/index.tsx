@@ -10,8 +10,9 @@ import CloudContainer from "../models/Cloud";
 import HorseModel from "../models/HorseModel";
 import ModelsRail from "../models/ModelsRail";
 import TrainModel from "../models/TrainModel";
-import { useFrame } from "@react-three/fiber";
+import { useFrame,useThree } from "@react-three/fiber";
 import HeroCtas from "./HeroCtas";
+import { isMobile } from "react-device-detect";
 
 interface RotatingStarProps {
   position: [number, number, number];
@@ -71,6 +72,19 @@ const Hero = () => {
   const videoSrc = useVideoStore(s => s.videoSrc);
   const cityReady = useCityStore(s => s.cityReady);
   const cityGPUCompiled = useCityStore(s => s.cityGPUCompiled);
+  const { viewport } = useThree();
+
+  const isCompact = isMobile || viewport.width < 7.5 || viewport.height < 6;
+
+  const titleFontSize = isCompact ? 3.6 : 9;
+  const plotFontSize = isCompact ? 0.42 : 0.95;
+  const quoteFontSize = isCompact ? 0.34 : 0.7;
+
+  const titleY = isCompact ? -10 : 0;
+  const plotY = isCompact ? 3.4 : 7.1;
+  const subY = isCompact ? 2.8 : 6.1;
+  const quoteY = isCompact ? -2 : -5.5;
+  const starY = isCompact ? 2 : 1;
 
   const handleAboutClick = () => {
     gsap.timeline()
@@ -116,14 +130,14 @@ const Hero = () => {
 
   const fontPropsh = {
     font: "./buzzer.otf",
-    fontSize: 9,
+    fontSize: titleFontSize,
     letterSpacing: -0.03,
     color: "red",
     alpha: 0.9,
   };
   const fontProps = {
     font: "./ruigslay.otf",
-    fontSize: 0.95,
+    fontSize: plotFontSize,
     letterSpacing: -0.02,
     color: "white",
     alpha: 0.8,
@@ -134,7 +148,7 @@ const Hero = () => {
   };
   const fontPropss = {
     font: "./pfdi.ttf",
-    fontSize: 0.7,
+    fontSize: quoteFontSize,
     letterSpacing: -0.02,
     color: "white",
     alpha: 1,
@@ -146,16 +160,16 @@ const Hero = () => {
 
   return (
     <>
-      <Text position={[0, 0, -10]} {...fontPropsh} ref={titleRef}>AKUL</Text>
-      <Text position={[0,7.1, -10]} {...fontProps} >Plot Twist</Text>
-      <Text position={[0, 6.1, -10]} {...fontProps} >You Found The Perfect Developer</Text>
-      <Text position={[0, -5.5, -10]} {...fontPropss} >&quot;I Hope You Get What You Want Before You Stop Wanting It&quot;</Text>
+      <Text position={[0, titleY, -10]} {...fontPropsh} ref={titleRef}>AKUL</Text>
+      <Text position={[0,plotY, -10]} {...fontProps} maxWidth={isCompact ? 7 : undefined} lineHeight={1.1} >Plot Twist</Text>
+      <Text position={[0, subY, -10]} {...fontProps} maxWidth={isCompact ? 7 : undefined} lineHeight={1.15} >You Found The Perfect Developer</Text>
+      <Text position={[0, quoteY, -10]} {...fontPropss} >&quot;I Hope You Get What You Want Before You Stop Wanting It&quot;</Text>
       <HeroCtas onAbout={handleAboutClick} onProjects={handleProjectsClick} />
       <RotatingStar position={[-12.2, -2, -10]} scale={2.5} rotationSpeed={0.03} />
       <RotatingStar position={[0, -4, -10]} scale={2} rotationSpeed={0.01} />
       <RotatingStar position={[10, 3, -10]} scale={2.5} rotationSpeed={0.03} />
       <RotatingStar position={[14, -3, -10]} scale={3} rotationSpeed={0.015} />
-      <RotatingStar position={[0, 1, -10]} scale={1.5} rotationSpeed={0.05} />
+      <RotatingStar position={[0, starY, -10]} scale={1.5} rotationSpeed={0.05} />
       <RotatingStar position={[0, 4.9, -10]} scale={2} rotationSpeed={0.01} />
       <RotatingStar position={[-12.5, 4.2, -10]} scale={3} rotationSpeed={0.015} />
       <CloudContainer/>
