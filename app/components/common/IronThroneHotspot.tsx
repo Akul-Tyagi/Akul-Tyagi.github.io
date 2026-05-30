@@ -14,7 +14,7 @@ type Props = JSX.IntrinsicElements['group'] & {
 };
 
 const IronThroneHotspot = ({
-  resumeUrl = '/ResAK.pdf',
+  resumeUrl = '/AkulTyagi_Resume.pdf',
   throneTexture = 'UV5',
   onInteractStart,
   onInteractEnd,

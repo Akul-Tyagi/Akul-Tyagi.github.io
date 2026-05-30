@@ -489,7 +489,7 @@ const CityScene = ({ active, fade = true }: CitySceneProps) => {
             rotation={[0.05, -0.13, 0]}
             scale={1.2}
             throneTexture="UV5"
-            resumeUrl="/ResAK.pdf"
+            resumeUrl="/AkulTyagi_Resume.pdf"
             onInteractStart={() => setUiCaptured(true)}
             onInteractEnd={() => setTimeout(() => setUiCaptured(false), 100)}
           />
